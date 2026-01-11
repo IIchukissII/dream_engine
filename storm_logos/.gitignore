@@ -1,0 +1,6 @@
+# Storm-Logos ignores
+.env
+# sessions/
+__pycache__/
+*.pyc
+node_modules/

@@ -1,0 +1,11 @@
+# Docker environment files with secrets
+.env
+.env.*
+!.env.example
+
+# Docker volumes (local development)
+volumes/
+
+# Backup files
+*.bak
+*.backup

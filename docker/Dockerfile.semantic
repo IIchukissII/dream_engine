@@ -1,0 +1,70 @@
+# =============================================================================
+# STORM-LOGOS SEMANTIC MICROSERVICE
+# =============================================================================
+# Dedicated service for semantic analysis and processing:
+# - Storm: Candidate explosion from Neo4j and spatial neighbors
+# - Dialectic: Thesis-antithesis filtering
+# - Chain: Resonance-based selection
+# - Physics: RC dynamics, gravity, Boltzmann factors
+# - Metrics: Coherence, irony, tension, defense analysis
+# =============================================================================
+
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Download spacy model
+RUN python -m spacy download en_core_web_sm
+
+# =============================================================================
+# PRODUCTION IMAGE
+# =============================================================================
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 appuser
+
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application
+COPY storm_logos /app/storm_logos
+COPY requirements.txt /app/
+
+# Set Python path
+ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+
+# Create directories
+RUN chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Expose port
+EXPOSE 8002
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8002/health || exit 1
+
+# Run the Semantic service
+CMD ["uvicorn", "storm_logos.services.semantic.main:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "2"]

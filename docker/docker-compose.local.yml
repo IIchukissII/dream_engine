@@ -1,0 +1,156 @@
+version: '3.8'
+
+# =============================================================================
+# STORM-LOGOS LOCAL DEVELOPMENT/TESTING
+# =============================================================================
+# Lightweight setup for local development and testing
+#
+# Usage:
+#   docker-compose -f docker-compose.local.yml up -d
+#   docker-compose -f docker-compose.local.yml logs -f
+#   docker-compose -f docker-compose.local.yml down -v  # Remove volumes too
+# =============================================================================
+
+services:
+  # ==========================================================================
+  # API SERVICE (Development mode with hot reload)
+  # ==========================================================================
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.api
+    container_name: storm-api-local
+    ports:
+      - "8001:8000"  # Use 8001 to avoid conflict
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=localdevpassword
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=semantic
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=localdevpassword
+      - REDIS_URL=redis://redis:6379/0
+      - LLM_MODEL=${LLM_MODEL:-groq:llama-3.3-70b-versatile}
+      - JWT_SECRET=local-dev-secret-not-for-production
+      - CORS_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:8080,http://127.0.0.1:3000,http://127.0.0.1:3001
+      - ENVIRONMENT=development
+      - LOG_LEVEL=DEBUG
+    depends_on:
+      postgres:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ../storm_logos:/app/storm_logos
+      - ../.env:/app/.env:ro
+    networks:
+      - storm-local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ==========================================================================
+  # POSTGRESQL
+  # ==========================================================================
+  postgres:
+    image: postgres:15-alpine
+    container_name: storm-postgres-local
+    ports:
+      - "5433:5432"  # Use 5433 to avoid conflict
+    environment:
+      - POSTGRES_DB=semantic
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=localdevpassword
+    volumes:
+      - postgres_local:/var/lib/postgresql/data
+      - ./init-scripts/postgres:/docker-entrypoint-initdb.d:ro
+    networks:
+      - storm-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d semantic"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================================================
+  # NEO4J
+  # ==========================================================================
+  neo4j:
+    image: neo4j:5-community
+    container_name: storm-neo4j-local
+    ports:
+      - "7476:7474"  # Use 7476 to avoid conflict
+      - "7689:7687"  # Use 7689 to avoid conflict
+    environment:
+      - NEO4J_AUTH=neo4j/localdevpassword
+      - NEO4J_PLUGINS=["apoc"]
+      - NEO4J_dbms_memory_heap_initial__size=256m
+      - NEO4J_dbms_memory_heap_max__size=512m
+    volumes:
+      - neo4j_local:/data
+    networks:
+      - storm-local
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7474"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # ==========================================================================
+  # REDIS
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: storm-redis-local
+    ports:
+      - "6380:6379"  # Use 6380 to avoid conflict
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_local:/data
+    networks:
+      - storm-local
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ==========================================================================
+  # FRONTEND (React + Nginx)
+  # ==========================================================================
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: storm-frontend-local
+    ports:
+      - "3001:80"  # Use 3001 to avoid conflict
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - storm-local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  storm-local:
+    driver: bridge
+
+volumes:
+  postgres_local:
+  neo4j_local:
+  redis_local:
