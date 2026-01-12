@@ -14,13 +14,15 @@ Run with:
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request, Response
 from pydantic import BaseModel
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 # Ensure storm_logos is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
@@ -37,6 +39,39 @@ from storm_logos.semantic.physics import (
     boltzmann_factor, transition_probability, master_score
 )
 from storm_logos.metrics.analyzers.archetype import get_archetype_analyzer
+
+
+# =============================================================================
+# PROMETHEUS METRICS
+# =============================================================================
+
+REQUEST_COUNT = Counter(
+    'semantic_requests_total',
+    'Total requests to semantic service',
+    ['endpoint', 'status']
+)
+
+REQUEST_LATENCY = Histogram(
+    'semantic_request_latency_seconds',
+    'Request latency in seconds',
+    ['endpoint'],
+    buckets=[0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0]
+)
+
+COORDINATES_LOADED = Gauge(
+    'semantic_coordinates_loaded',
+    'Number of word coordinates loaded'
+)
+
+NEO4J_CONNECTED = Gauge(
+    'semantic_neo4j_connected',
+    'Whether Neo4j is connected (1=yes, 0=no)'
+)
+
+ACTIVE_REQUESTS = Gauge(
+    'semantic_active_requests',
+    'Number of currently active requests'
+)
 
 
 # =============================================================================
@@ -272,8 +307,51 @@ Dedicated microservice for semantic analysis and processing.
 
 
 # =============================================================================
+# MIDDLEWARE FOR METRICS
+# =============================================================================
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Track request metrics."""
+    if request.url.path == "/metrics":
+        return await call_next(request)
+
+    endpoint = request.url.path
+    ACTIVE_REQUESTS.inc()
+    start_time = time.time()
+
+    try:
+        response = await call_next(request)
+        REQUEST_COUNT.labels(endpoint=endpoint, status=response.status_code).inc()
+        return response
+    except Exception as e:
+        REQUEST_COUNT.labels(endpoint=endpoint, status=500).inc()
+        raise
+    finally:
+        REQUEST_LATENCY.labels(endpoint=endpoint).observe(time.time() - start_time)
+        ACTIVE_REQUESTS.dec()
+
+
+# =============================================================================
 # ENDPOINTS
 # =============================================================================
+
+@app.get("/metrics")
+async def prometheus_metrics():
+    """Prometheus metrics endpoint."""
+    service = get_service()
+
+    # Update gauges
+    if service.data:
+        COORDINATES_LOADED.set(service.data.n_coordinates)
+    if service.neo4j:
+        NEO4J_CONNECTED.set(1 if service.neo4j._connected else 0)
+
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
