@@ -7,12 +7,14 @@ python-multipart>=0.0.6
 
 # Auth
 pyjwt>=2.8.0
+bcrypt>=4.1.0
 
 # Database
 psycopg2-binary>=2.9.9
 neo4j>=5.17.0
 sqlalchemy>=2.0.0
 alembic>=1.13.0
+redis>=5.0.0
 
 # LLM Clients
 anthropic>=0.18.0
@@ -29,6 +31,7 @@ pydantic>=2.5.0
 # Utils
 python-dotenv>=1.0.0
 requests>=2.31.0
+aiosmtplib>=3.0.0
 
 # Monitoring
 prometheus-client>=0.19.0

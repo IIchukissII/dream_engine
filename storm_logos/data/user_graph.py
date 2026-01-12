@@ -18,6 +18,8 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 
+import bcrypt
+
 from .neo4j import get_neo4j
 
 
@@ -26,6 +28,10 @@ class User:
     """User model for therapy sessions."""
     username: str
     user_id: Optional[str] = None
+    email: Optional[str] = None
+    email_verified: bool = False
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
     created_at: Optional[str] = None
     password_hash: Optional[str] = None
 
@@ -40,19 +46,46 @@ class User:
             f"{self.username}:{secrets.token_hex(8)}".encode()
         ).hexdigest()[:16]
 
+    @staticmethod
+    def generate_token() -> str:
+        """Generate a secure random token for email verification/password reset."""
+        return secrets.token_urlsafe(32)
+
     def set_password(self, password: str):
-        """Hash and store password."""
-        salt = secrets.token_hex(16)
-        hash_val = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
-        self.password_hash = f"{salt}:{hash_val}"
+        """Hash and store password using bcrypt."""
+        self.password_hash = bcrypt.hashpw(
+            password.encode(), bcrypt.gensalt(rounds=12)
+        ).decode()
 
     def verify_password(self, password: str) -> bool:
-        """Verify password against stored hash."""
+        """Verify password against stored hash.
+
+        Supports both bcrypt (new) and legacy SHA256 formats.
+        Legacy passwords are auto-migrated to bcrypt on successful verification.
+        """
         if not self.password_hash:
             return False
-        salt, stored_hash = self.password_hash.split(":", 1)
-        check_hash = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
-        return check_hash == stored_hash
+
+        # Check if bcrypt format ($2b$...)
+        if self.password_hash.startswith('$2'):
+            return bcrypt.checkpw(password.encode(), self.password_hash.encode())
+
+        # Legacy SHA256 format (salt:hash)
+        if ':' in self.password_hash:
+            salt, stored_hash = self.password_hash.split(":", 1)
+            check_hash = hashlib.sha256(f"{salt}:{password}".encode()).hexdigest()
+            if check_hash == stored_hash:
+                # Auto-migrate to bcrypt
+                self.set_password(password)
+                self._needs_hash_update = True
+                return True
+
+        return False
+
+    @property
+    def needs_hash_update(self) -> bool:
+        """Check if password hash was migrated and needs DB update."""
+        return getattr(self, '_needs_hash_update', False)
 
 
 @dataclass
@@ -158,15 +191,17 @@ class UserGraph:
     # USER MANAGEMENT
     # =========================================================================
 
-    def create_user(self, username: str, password: str) -> Optional[User]:
+    def create_user(self, username: str, password: str, email: str = None) -> Optional[User]:
         """Create a new user."""
-        user = User(username=username)
+        user = User(username=username, email=email)
         user.set_password(password)
 
         query = """
         CREATE (u:User {
             user_id: $user_id,
             username: $username,
+            email: $email,
+            email_verified: false,
             password_hash: $password_hash,
             created_at: $created_at
         })
@@ -177,6 +212,7 @@ class UserGraph:
                 session.run(query,
                     user_id=user.user_id,
                     username=user.username,
+                    email=user.email,
                     password_hash=user.password_hash,
                     created_at=user.created_at
                 )
@@ -190,6 +226,8 @@ class UserGraph:
         query = """
         MATCH (u:User {username: $username})
         RETURN u.user_id as user_id, u.username as username,
+               u.email as email, u.email_verified as email_verified,
+               u.display_name as display_name, u.avatar_url as avatar_url,
                u.password_hash as password_hash, u.created_at as created_at
         """
         with self._neo4j._driver.session() as session:
@@ -199,17 +237,142 @@ class UserGraph:
                 return User(
                     user_id=record["user_id"],
                     username=record["username"],
+                    email=record["email"],
+                    email_verified=record["email_verified"] or False,
+                    display_name=record["display_name"],
+                    avatar_url=record["avatar_url"],
                     password_hash=record["password_hash"],
                     created_at=record["created_at"]
                 )
         return None
 
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """Get user by email address."""
+        query = """
+        MATCH (u:User {email: $email})
+        RETURN u.user_id as user_id, u.username as username,
+               u.email as email, u.email_verified as email_verified,
+               u.display_name as display_name, u.avatar_url as avatar_url,
+               u.password_hash as password_hash, u.created_at as created_at
+        """
+        with self._neo4j._driver.session() as session:
+            result = session.run(query, email=email)
+            record = result.single()
+            if record:
+                return User(
+                    user_id=record["user_id"],
+                    username=record["username"],
+                    email=record["email"],
+                    email_verified=record["email_verified"] or False,
+                    display_name=record["display_name"],
+                    avatar_url=record["avatar_url"],
+                    password_hash=record["password_hash"],
+                    created_at=record["created_at"]
+                )
+        return None
+
+    def get_user_by_id(self, user_id: str) -> Optional[User]:
+        """Get user by user_id."""
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        RETURN u.user_id as user_id, u.username as username,
+               u.email as email, u.email_verified as email_verified,
+               u.display_name as display_name, u.avatar_url as avatar_url,
+               u.password_hash as password_hash, u.created_at as created_at
+        """
+        with self._neo4j._driver.session() as session:
+            result = session.run(query, user_id=user_id)
+            record = result.single()
+            if record:
+                return User(
+                    user_id=record["user_id"],
+                    username=record["username"],
+                    email=record["email"],
+                    email_verified=record["email_verified"] or False,
+                    display_name=record["display_name"],
+                    avatar_url=record["avatar_url"],
+                    password_hash=record["password_hash"],
+                    created_at=record["created_at"]
+                )
+        return None
+
+    def verify_email(self, user_id: str) -> bool:
+        """Mark user's email as verified."""
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        SET u.email_verified = true
+        RETURN u
+        """
+        try:
+            with self._neo4j._driver.session() as session:
+                result = session.run(query, user_id=user_id)
+                return result.single() is not None
+        except Exception as e:
+            print(f"Error verifying email: {e}")
+            return False
+
+    def update_profile(self, user_id: str, display_name: str = None, avatar_url: str = None) -> bool:
+        """Update user profile fields."""
+        updates = []
+        params = {"user_id": user_id}
+
+        if display_name is not None:
+            updates.append("u.display_name = $display_name")
+            params["display_name"] = display_name
+        if avatar_url is not None:
+            updates.append("u.avatar_url = $avatar_url")
+            params["avatar_url"] = avatar_url
+
+        if not updates:
+            return True
+
+        query = f"""
+        MATCH (u:User {{user_id: $user_id}})
+        SET {', '.join(updates)}
+        RETURN u
+        """
+        try:
+            with self._neo4j._driver.session() as session:
+                result = session.run(query, **params)
+                return result.single() is not None
+        except Exception as e:
+            print(f"Error updating profile: {e}")
+            return False
+
     def authenticate(self, username: str, password: str) -> Optional[User]:
-        """Authenticate user and return User if valid."""
+        """Authenticate user and return User if valid.
+
+        Auto-migrates legacy SHA256 passwords to bcrypt on successful login.
+        """
         user = self.get_user(username)
         if user and user.verify_password(password):
+            # Auto-migrate password hash if needed
+            if user.needs_hash_update:
+                self._update_password_hash(user.user_id, user.password_hash)
             return user
         return None
+
+    def _update_password_hash(self, user_id: str, new_hash: str) -> bool:
+        """Update user's password hash in Neo4j."""
+        query = """
+        MATCH (u:User {user_id: $user_id})
+        SET u.password_hash = $password_hash
+        RETURN u
+        """
+        try:
+            with self._neo4j._driver.session() as session:
+                session.run(query, user_id=user_id, password_hash=new_hash)
+            return True
+        except Exception as e:
+            print(f"Error updating password hash: {e}")
+            return False
+
+    def update_password(self, user_id: str, new_password: str) -> bool:
+        """Update user's password (for password change/reset)."""
+        new_hash = bcrypt.hashpw(
+            new_password.encode(), bcrypt.gensalt(rounds=12)
+        ).decode()
+        return self._update_password_hash(user_id, new_hash)
 
     # =========================================================================
     # SESSION STORAGE

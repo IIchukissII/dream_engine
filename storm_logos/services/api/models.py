@@ -12,6 +12,8 @@ __all__ = [
     'SessionMode',
     # Auth
     'UserCreate', 'UserLogin', 'UserResponse', 'TokenResponse',
+    'PasswordResetRequest', 'PasswordReset', 'PasswordChange',
+    'EmailVerify', 'EmailResend', 'ProfileUpdate', 'MessageResponse',
     # Sessions
     'SessionStart', 'SessionMessage', 'SessionResponse', 'SessionEnd',
     # Archetypes
@@ -27,6 +29,7 @@ __all__ = [
 
 class UserCreate(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
+    email: str = Field(..., min_length=5)
     password: str = Field(..., min_length=6)
 
 
@@ -38,6 +41,10 @@ class UserLogin(BaseModel):
 class UserResponse(BaseModel):
     user_id: str
     username: str
+    email: Optional[str] = None
+    email_verified: bool = False
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
     created_at: str
 
 
@@ -45,6 +52,41 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+
+# Password reset models
+class PasswordResetRequest(BaseModel):
+    email: str
+
+
+class PasswordReset(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=6)
+
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=6)
+
+
+# Email verification models
+class EmailVerify(BaseModel):
+    token: str
+
+
+class EmailResend(BaseModel):
+    email: str
+
+
+# Profile management models
+class ProfileUpdate(BaseModel):
+    display_name: Optional[str] = Field(None, max_length=100)
+    avatar_url: Optional[str] = Field(None, max_length=500)
+
+
+class MessageResponse(BaseModel):
+    message: str
+    success: bool = True
 
 
 # =============================================================================

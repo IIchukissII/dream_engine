@@ -97,20 +97,45 @@ class PostgresData:
         if self._loaded:
             return self.n_coordinates
 
-        # 1. Load from JSON (primary source with A, S, τ)
-        self._load_from_json()
+        # 1. Load from word_coordinates table (primary source)
+        self._load_from_database()
 
-        # 2. Derive from noun_abstraction (95K nouns with τ)
-        self._load_from_abstraction()
-
-        # 3. Separate into nouns and adjectives
+        # 2. Separate into nouns and adjectives
         self._categorize_words()
 
         self._loaded = True
         return self.n_coordinates
 
-    def _load_from_json(self):
-        """Load coordinates from derived_coordinates.json."""
+    def _load_from_database(self):
+        """Load coordinates from word_coordinates table in PostgreSQL."""
+        try:
+            conn = psycopg2.connect(**self.config.as_dict())
+            cur = conn.cursor()
+
+            cur.execute('''
+                SELECT word, a, s, tau, source
+                FROM word_coordinates
+            ''')
+
+            for word, a, s, tau, source in cur.fetchall():
+                self._coordinates[word.lower()] = WordCoordinates(
+                    word=word.lower(),
+                    A=float(a) if a else 0.0,
+                    S=float(s) if s else 0.0,
+                    tau=float(tau) if tau else 2.5,
+                    source=source or 'db'
+                )
+
+            conn.close()
+            print(f"  Database: {len(self._coordinates):,} words loaded")
+
+        except Exception as e:
+            print(f"  Warning (DB): {e}")
+            # Fallback to JSON if database fails
+            self._load_from_json_fallback()
+
+    def _load_from_json_fallback(self):
+        """Fallback: Load coordinates from derived_coordinates.json."""
         config = get_config()
         coord_path = config.data_path / "derived_coordinates.json"
 
@@ -133,47 +158,10 @@ class PostgresData:
                         source='json'
                     )
 
-            print(f"  JSON: {len(self._coordinates):,} words")
+            print(f"  JSON fallback: {len(self._coordinates):,} words")
 
         except Exception as e:
-            print(f"  Warning (JSON): {e}")
-
-    def _load_from_abstraction(self):
-        """Load/derive coordinates from noun_abstraction table."""
-        try:
-            conn = psycopg2.connect(**self.config.as_dict())
-            cur = conn.cursor()
-
-            cur.execute('''
-                SELECT n.noun_text, na.adj_variety
-                FROM noun_abstraction na
-                JOIN nouns n ON na.noun_id = n.noun_id
-            ''')
-
-            derived = 0
-            for noun, variety in cur.fetchall():
-                word = noun.lower()
-                if word in self._coordinates:
-                    continue
-
-                # Derive τ from variety
-                if variety and variety > 0:
-                    tau = 4.0 - 3.0 * math.log(variety + 1) / math.log(1000)
-                    tau = max(0.5, min(4.5, tau))
-                else:
-                    tau = 3.0
-
-                self._coordinates[word] = WordCoordinates(
-                    word=word, A=0.0, S=0.0, tau=tau,
-                    source='abstraction'
-                )
-                derived += 1
-
-            conn.close()
-            print(f"  Abstraction: {derived:,} nouns derived")
-
-        except Exception as e:
-            print(f"  Warning (DB): {e}")
+            print(f"  Warning (JSON fallback): {e}")
 
     def _categorize_words(self):
         """Separate coordinates into nouns and adjectives."""
