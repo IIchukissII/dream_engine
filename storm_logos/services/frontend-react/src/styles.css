@@ -51,6 +51,18 @@ header {
   border-bottom: 1px solid var(--glass-border);
 }
 
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
 header h1 {
   font-size: 1.5rem;
   background: linear-gradient(90deg, var(--accent), #ff6b9d);
@@ -58,6 +70,18 @@ header h1 {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-shadow: 0 0 30px var(--accent-glow);
+}
+
+.beta-badge {
+  background: linear-gradient(135deg, var(--accent), #ff6b9d);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: -0.5rem;
 }
 
 .header-right {

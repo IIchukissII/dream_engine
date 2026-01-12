@@ -10,7 +10,11 @@ export default function Header({ user, onHistory, onProfile, onSettings, onLogou
         </div>
       )}
       <header>
-        <h1>Storm-Logos</h1>
+        <div className="header-brand">
+          <img src="/logo.svg" alt="Storm-Logos" className="header-logo" />
+          <h1>Storm-Logos</h1>
+          <span className="beta-badge">Beta</span>
+        </div>
         <div className="header-right">
           <span className="user-info">{user?.display_name || user?.username || 'Guest'}</span>
           {user && (
