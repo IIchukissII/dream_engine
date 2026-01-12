@@ -297,12 +297,19 @@ async def send_message(
             detail="Session not found"
         )
 
-    # Verify ownership if authenticated
-    if current_user and state.user_id and state.user_id != current_user["user_id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This is not your session"
-        )
+    # Security: Verify ownership for user-owned sessions
+    if state.user_id:
+        # Session belongs to a user - require authentication
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to access this session"
+            )
+        if state.user_id != current_user["user_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This is not your session"
+            )
 
     user_input = data.message.strip()
 
@@ -434,6 +441,20 @@ async def end_session(
             detail="Session not found"
         )
 
+    # Security: Verify ownership for user-owned sessions
+    if state.user_id:
+        # Session belongs to a user - require authentication
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to end this session"
+            )
+        if state.user_id != current_user["user_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This is not your session"
+            )
+
     engine = get_dream_engine()
     therapist = get_therapist()
 
@@ -508,6 +529,20 @@ async def get_session_state(
             detail="Session not found"
         )
 
+    # Security: Verify ownership for user-owned sessions
+    if state.user_id:
+        # Session belongs to a user - require authentication
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to access this session"
+            )
+        if state.user_id != current_user["user_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This is not your session"
+            )
+
     return SessionResponse(
         session_id=session_id,
         mode=SessionMode(state.mode),
@@ -532,12 +567,19 @@ async def delete_session(
             detail="Session not found"
         )
 
-    # Verify ownership if authenticated
-    if current_user and state.user_id and state.user_id != current_user["user_id"]:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="This is not your session"
-        )
+    # Security: Verify ownership for user-owned sessions
+    if state.user_id:
+        # Session belongs to a user - require authentication
+        if not current_user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required to delete this session"
+            )
+        if state.user_id != current_user["user_id"]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="This is not your session"
+            )
 
     # Reset therapist
     therapist = get_therapist()
