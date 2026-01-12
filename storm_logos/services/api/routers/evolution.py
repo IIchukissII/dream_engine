@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from ..models import (
     UserProfile, ArchetypeEvolution, SessionHistory,
-    DreamAnalysisRequest, DreamAnalysisResponse, DreamSymbol, ArchetypeManifestation
+    DreamAnalysisRequest, DreamAnalysisResponse, DreamSymbolResponse, ArchetypeManifestationResponse
 )
 from ..deps import get_current_user, get_user_graph, get_dream_engine
 
@@ -126,7 +126,7 @@ async def analyze_dream(data: DreamAnalysisRequest):
 
     # Convert symbols
     symbols = [
-        DreamSymbol(
+        DreamSymbolResponse(
             text=s.raw_text,
             archetype=s.archetype,
             A=s.bond.A,
@@ -154,7 +154,7 @@ async def analyze_dream(data: DreamAnalysisRequest):
     for arch_name, score in archetype_scores.items():
         if score > 0.3:  # Threshold
             arch_symbols = [s.raw_text for s in analysis.symbols if s.archetype == arch_name]
-            archetypes.append(ArchetypeManifestation(
+            archetypes.append(ArchetypeManifestationResponse(
                 archetype=arch_name,
                 symbols=arch_symbols[:5],
                 emotions=[],  # Could be extracted from text

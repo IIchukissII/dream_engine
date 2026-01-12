@@ -3,13 +3,22 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
-from enum import Enum
 
+# Import canonical SessionMode from data models
+from storm_logos.data.models import SessionMode
 
-class SessionMode(str, Enum):
-    DREAM = "dream"
-    THERAPY = "therapy"
-    HYBRID = "hybrid"
+__all__ = [
+    # Re-exported
+    'SessionMode',
+    # Auth
+    'UserCreate', 'UserLogin', 'UserResponse', 'TokenResponse',
+    # Sessions
+    'SessionStart', 'SessionMessage', 'SessionResponse', 'SessionEnd',
+    # Archetypes
+    'ArchetypeManifestationResponse', 'ArchetypeEvolution', 'UserProfile', 'SessionHistory',
+    # Dream Analysis
+    'DreamAnalysisRequest', 'DreamSymbolResponse', 'DreamAnalysisResponse',
+]
 
 
 # =============================================================================
@@ -76,7 +85,11 @@ class SessionEnd(BaseModel):
 # ARCHETYPES
 # =============================================================================
 
-class ArchetypeManifestation(BaseModel):
+# Note: The canonical ArchetypeManifestation dataclass is in storm_logos.data.user_graph
+# This is the API response DTO version for serialization
+
+class ArchetypeManifestationResponse(BaseModel):
+    """API response model for archetype manifestations."""
     archetype: str
     symbols: List[str]
     emotions: List[str]
@@ -114,7 +127,11 @@ class DreamAnalysisRequest(BaseModel):
     dream_text: str
 
 
-class DreamSymbol(BaseModel):
+# Note: The canonical DreamSymbol dataclass is in storm_logos.data.models
+# This is the API response DTO version with flattened coordinates
+
+class DreamSymbolResponse(BaseModel):
+    """API response model for dream symbols (flattened from internal DreamSymbol)."""
     text: str
     archetype: Optional[str] = None
     A: float = 0.0
@@ -123,8 +140,8 @@ class DreamSymbol(BaseModel):
 
 
 class DreamAnalysisResponse(BaseModel):
-    symbols: List[DreamSymbol]
-    archetypes: List[ArchetypeManifestation]
+    symbols: List[DreamSymbolResponse]
+    archetypes: List[ArchetypeManifestationResponse]
     dominant_archetype: str
     coordinates: Dict[str, float]
     interpretation: str

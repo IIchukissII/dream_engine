@@ -10,8 +10,25 @@ Provides:
     - BookProcessor: Process books into Neo4j
 """
 
-from .models import Bond, WordCoordinates, Trajectory, SemanticState
+from .models import (
+    Bond, WordCoordinates, Trajectory, SemanticState,
+    SessionMode, DreamSymbol, DreamState, DreamAnalysis
+)
 from .postgres import PostgresData, get_data
 from .cache import CoordinateCache
 from .neo4j import Neo4jData, Author, Book, get_neo4j
 from .book_parser import BookParser, BookProcessor, ParsedBook, ExtractedBond
+
+__all__ = [
+    # Models
+    'Bond', 'WordCoordinates', 'Trajectory', 'SemanticState',
+    'SessionMode', 'DreamSymbol', 'DreamState', 'DreamAnalysis',
+    # PostgreSQL
+    'PostgresData', 'get_data',
+    # Cache
+    'CoordinateCache',
+    # Neo4j
+    'Neo4jData', 'Author', 'Book', 'get_neo4j',
+    # Book Processing
+    'BookParser', 'BookProcessor', 'ParsedBook', 'ExtractedBond',
+]

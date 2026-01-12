@@ -4,8 +4,24 @@ All dataclasses for bonds, coordinates, trajectories, and states.
 """
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import List, Optional, Tuple, Dict
 import numpy as np
+
+
+# ============================================================================
+# ENUMS
+# ============================================================================
+
+class SessionMode(str, Enum):
+    """Session mode for therapy/dream sessions.
+
+    Using (str, Enum) ensures proper JSON serialization.
+    """
+    UNKNOWN = "unknown"
+    DREAM = "dream"
+    THERAPY = "therapy"
+    HYBRID = "hybrid"
 
 
 # ============================================================================

@@ -18,6 +18,14 @@ import sys
 from datetime import datetime
 from typing import Any, Dict, Optional
 
+__all__ = [
+    'JSONFormatter',
+    'HumanReadableFormatter',
+    'setup_logging',
+    'get_logger',
+    'log_request',
+]
+
 
 class JSONFormatter(logging.Formatter):
     """Format log records as JSON for cloud log aggregation."""

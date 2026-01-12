@@ -1,15 +1,10 @@
-"""Logging utilities."""
+"""Logging utilities.
 
-import logging
-from typing import Optional
+This module re-exports from the canonical logging_config module for backwards compatibility.
+Use storm_logos.logging_config directly for full functionality.
+"""
 
+# Re-export from canonical logging configuration
+from storm_logos.logging_config import setup_logging, get_logger, log_request
 
-def setup_logging(level: int = logging.INFO,
-                  format: str = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'):
-    """Setup logging configuration."""
-    logging.basicConfig(level=level, format=format)
-
-
-def get_logger(name: str = 'storm_logos') -> logging.Logger:
-    """Get a logger instance."""
-    return logging.getLogger(name)
+__all__ = ['setup_logging', 'get_logger', 'log_request']

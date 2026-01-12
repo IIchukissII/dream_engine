@@ -50,11 +50,8 @@ def load_env():
 load_env()
 
 
-class SessionMode(Enum):
-    UNKNOWN = "unknown"
-    DREAM = "dream"
-    THERAPY = "therapy"
-    HYBRID = "hybrid"
+# Import canonical SessionMode from data models
+from storm_logos.data.models import SessionMode
 
 
 class ResponseType(Enum):

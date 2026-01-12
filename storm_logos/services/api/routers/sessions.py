@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 
 from ..models import (
     SessionStart, SessionMessage, SessionResponse, SessionEnd,
-    SessionMode, ArchetypeManifestation
+    SessionMode
 )
 from ..deps import (
     get_current_user, get_optional_user, get_dream_engine, get_user_graph,
