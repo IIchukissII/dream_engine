@@ -1,13 +1,14 @@
 """Evolution Router: Archetype evolution and user profile."""
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status, Depends
+from typing import List, Optional
+from fastapi import APIRouter, HTTPException, status, Depends, Request
 
 from ..models import (
     UserProfile, ArchetypeEvolution, SessionHistory,
     DreamAnalysisRequest, DreamAnalysisResponse, DreamSymbolResponse, ArchetypeManifestationResponse
 )
-from ..deps import get_current_user, get_user_graph, get_dream_engine
+from ..deps import get_current_user, get_optional_user, get_user_graph, get_dream_engine
+from ..rate_limiter import get_rate_limiter
 
 router = APIRouter(prefix="/evolution", tags=["evolution"])
 
@@ -117,8 +118,25 @@ async def get_emotional_patterns(current_user: dict = Depends(get_current_user))
 # =============================================================================
 
 @router.post("/analyze-dream", response_model=DreamAnalysisResponse)
-async def analyze_dream(data: DreamAnalysisRequest):
-    """Analyze a dream without starting a session."""
+async def analyze_dream(
+    data: DreamAnalysisRequest,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user)
+):
+    """Analyze a dream without starting a session.
+
+    Guest users limited to 3 analyses. Authenticated users unlimited.
+    """
+    # Check guest limit (authenticated users bypass)
+    if not current_user:
+        limiter = get_rate_limiter()
+        allowed, info = limiter.check_guest_dream_limit(request)
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Guest limit reached ({info['limit']} analyses). Please register for unlimited access.",
+            )
+
     engine = get_dream_engine()
 
     # Get full analysis
@@ -162,6 +180,11 @@ async def analyze_dream(data: DreamAnalysisRequest):
             ))
 
     dominant, _ = state.dominant_archetype()
+
+    # Increment guest count after successful analysis
+    if not current_user:
+        limiter = get_rate_limiter()
+        limiter.increment_guest_dream_count(request)
 
     return DreamAnalysisResponse(
         symbols=symbols,

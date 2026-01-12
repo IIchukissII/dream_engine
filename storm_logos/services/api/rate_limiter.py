@@ -28,6 +28,9 @@ RATE_LIMITS = {
 MAX_LOGIN_ATTEMPTS = int(os.getenv('MAX_LOGIN_ATTEMPTS', '5'))
 LOCKOUT_DURATION = int(os.getenv('LOCKOUT_DURATION_MINUTES', '15')) * 60
 
+# Guest dream analysis limit
+GUEST_DREAM_ANALYSIS_LIMIT = int(os.getenv('GUEST_DREAM_ANALYSIS_LIMIT', '3'))
+
 
 class RateLimiter:
     """Redis-backed rate limiter."""
@@ -167,6 +170,67 @@ class RateLimiter:
             self.client.delete(key, lockout_key)
         except redis.RedisError:
             pass
+
+    def check_guest_dream_limit(self, request: Request) -> Tuple[bool, dict]:
+        """Check if guest user has remaining dream analyses.
+
+        Args:
+            request: FastAPI request object
+
+        Returns:
+            (allowed, info) where info contains used/remaining counts
+        """
+        client_ip = self._get_client_ip(request)
+        key = f"guest_dreams:{client_ip}"
+
+        try:
+            used = int(self.client.get(key) or 0)
+            remaining = max(0, GUEST_DREAM_ANALYSIS_LIMIT - used)
+
+            info = {
+                'limit': GUEST_DREAM_ANALYSIS_LIMIT,
+                'used': used,
+                'remaining': remaining,
+            }
+
+            if used >= GUEST_DREAM_ANALYSIS_LIMIT:
+                return False, info
+
+            return True, info
+
+        except redis.RedisError as e:
+            print(f"Guest limit Redis error: {e}")
+            return True, {'error': str(e)}
+
+    def increment_guest_dream_count(self, request: Request) -> int:
+        """Increment guest dream analysis count.
+
+        Args:
+            request: FastAPI request object
+
+        Returns:
+            New count after increment
+        """
+        client_ip = self._get_client_ip(request)
+        key = f"guest_dreams:{client_ip}"
+
+        try:
+            count = self.client.incr(key)
+            # No expiry - permanent limit for guest IP
+            return count
+        except redis.RedisError as e:
+            print(f"Guest count increment error: {e}")
+            return 0
+
+    def get_guest_dream_count(self, request: Request) -> int:
+        """Get current guest dream analysis count."""
+        client_ip = self._get_client_ip(request)
+        key = f"guest_dreams:{client_ip}"
+
+        try:
+            return int(self.client.get(key) or 0)
+        except redis.RedisError:
+            return 0
 
 
 # Singleton instance

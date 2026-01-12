@@ -456,15 +456,33 @@ from .deps import get_current_user, get_optional_user
 
 
 @app.post("/dreams/analyze")
-async def analyze_dream(data: dict):
+async def analyze_dream(
+    data: dict,
+    request: Request,
+    current_user: Optional[dict] = Depends(get_optional_user)
+):
     """Quick dream analysis without conversation.
 
     Returns symbols, archetypes, interpretation, and corpus resonances.
+    Guest users limited to 3 analyses. Authenticated users unlimited.
     """
+    from .rate_limiter import get_rate_limiter
+
     dream_text = data.get("dream", "").strip()
 
     if not dream_text or len(dream_text) < 20:
         return {"error": "Dream text too short (min 20 chars)"}
+
+    # Check guest limit (authenticated users bypass)
+    if not current_user:
+        limiter = get_rate_limiter()
+        allowed, info = limiter.check_guest_dream_limit(request)
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Guest limit reached ({info['limit']} analyses). Please register for unlimited access.",
+                headers={"X-Guest-Limit": str(info['limit']), "X-Guest-Used": str(info['used'])}
+            )
 
     try:
         engine = get_dream_engine()
@@ -498,7 +516,18 @@ async def analyze_dream(data: dict):
 
         dominant, score = state.dominant_archetype()
 
-        return {
+        # Increment guest count after successful analysis
+        guest_info = None
+        if not current_user:
+            limiter = get_rate_limiter()
+            count = limiter.increment_guest_dream_count(request)
+            guest_info = {
+                "used": count,
+                "remaining": max(0, 3 - count),
+                "limit": 3,
+            }
+
+        result = {
             "dream": dream_text,
             "symbols": symbols,
             "archetypes": archetypes,
@@ -518,6 +547,11 @@ async def analyze_dream(data: dict):
             "corpus_resonances": analysis.corpus_resonances,
             "timestamp": analysis.timestamp,
         }
+
+        if guest_info:
+            result["guest_limit"] = guest_info
+
+        return result
 
     except Exception as e:
         import traceback
