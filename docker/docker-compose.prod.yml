@@ -82,6 +82,14 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:?CORS_ORIGINS is required}
       - ENVIRONMENT=production
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - EMAIL_SMTP_HOST=${EMAIL_SMTP_HOST:-smtp.gmail.com}
+      - EMAIL_SMTP_PORT=${EMAIL_SMTP_PORT:-465}
+      - EMAIL_USE_SSL=${EMAIL_USE_SSL:-true}
+      - EMAIL_SMTP_USER=${EMAIL_SMTP_USER}
+      - EMAIL_SMTP_PASSWORD=${EMAIL_SMTP_PASSWORD}
+      - EMAIL_FROM_ADDRESS=${EMAIL_FROM_ADDRESS:-noreply@dream-engine.space}
+      - EMAIL_FROM_NAME=${EMAIL_FROM_NAME:-Dream Engine}
+      - BASE_URL=${BASE_URL:-https://dream-engine.space}
     depends_on:
       neo4j:
         condition: service_healthy
