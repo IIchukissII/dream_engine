@@ -14,19 +14,54 @@ Run with:
 
 import os
 import sys
+import time
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, Request, Response
 from pydantic import BaseModel
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 
 # Ensure storm_logos is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
 from storm_logos.applications import Therapist
 from storm_logos.data.models import SemanticState
+
+
+# =============================================================================
+# PROMETHEUS METRICS
+# =============================================================================
+
+REQUEST_COUNT = Counter(
+    'therapist_requests_total',
+    'Total requests to therapist service',
+    ['endpoint', 'status']
+)
+
+REQUEST_LATENCY = Histogram(
+    'therapist_request_latency_seconds',
+    'Request latency in seconds',
+    ['endpoint'],
+    buckets=[0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0]
+)
+
+ACTIVE_SESSIONS = Gauge(
+    'therapist_active_sessions',
+    'Number of active therapy sessions'
+)
+
+ACTIVE_REQUESTS = Gauge(
+    'therapist_active_requests',
+    'Number of currently active requests'
+)
+
+THERAPY_TURNS = Counter(
+    'therapist_turns_total',
+    'Total therapy turns processed'
+)
 
 
 # =============================================================================
@@ -169,8 +204,48 @@ Dedicated microservice for therapy processing using the full Storm-Logos theory.
 
 
 # =============================================================================
+# MIDDLEWARE FOR METRICS
+# =============================================================================
+
+@app.middleware("http")
+async def metrics_middleware(request: Request, call_next):
+    """Track request metrics."""
+    if request.url.path == "/metrics":
+        return await call_next(request)
+
+    endpoint = request.url.path
+    ACTIVE_REQUESTS.inc()
+    start_time = time.time()
+
+    try:
+        response = await call_next(request)
+        REQUEST_COUNT.labels(endpoint=endpoint, status=response.status_code).inc()
+        return response
+    except Exception as e:
+        REQUEST_COUNT.labels(endpoint=endpoint, status=500).inc()
+        raise
+    finally:
+        REQUEST_LATENCY.labels(endpoint=endpoint).observe(time.time() - start_time)
+        ACTIVE_REQUESTS.dec()
+
+
+# =============================================================================
 # ENDPOINTS
 # =============================================================================
+
+@app.get("/metrics")
+async def prometheus_metrics():
+    """Prometheus metrics endpoint."""
+    service = get_service()
+
+    # Update gauges
+    ACTIVE_SESSIONS.set(len(service._sessions))
+
+    return Response(
+        content=generate_latest(),
+        media_type=CONTENT_TYPE_LATEST
+    )
+
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -204,6 +279,7 @@ async def process_therapy(request: TherapyRequest):
     try:
         # Generate response using full pipeline
         response = therapist.respond(request.text)
+        THERAPY_TURNS.inc()
 
         # Get trajectory and state
         trajectory = therapist.get_trajectory()

@@ -36,13 +36,12 @@ scrape_configs:
       - targets: ['storm-semantic:8002']
     metrics_path: '/metrics'
 
-  # Neo4j metrics (if enabled)
-  - job_name: 'neo4j'
-    static_configs:
-      - targets: ['neo4j:2004']
-    metrics_path: '/metrics'
-
   # Redis metrics (via redis-exporter)
   - job_name: 'redis'
     static_configs:
       - targets: ['redis-exporter:9121']
+
+  # PostgreSQL metrics (via postgres-exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']

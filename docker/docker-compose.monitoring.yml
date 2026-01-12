@@ -38,7 +38,7 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-StormLogos2026!}
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_SERVER_ROOT_URL=http://152.53.149.229:3001
+      - GF_SERVER_ROOT_URL=https://dream-engine.space:3001
     volumes:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
@@ -100,6 +100,20 @@ services:
       - "9121:9121"
     environment:
       - REDIS_ADDR=redis:6379
+    networks:
+      - storm-network
+    restart: always
+
+  # ===========================================================================
+  # POSTGRES EXPORTER - PostgreSQL Metrics
+  # ===========================================================================
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: storm-postgres-exporter
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://storm:storm_secure_pass_2026@postgres:5432/storm_logos?sslmode=disable
     networks:
       - storm-network
     restart: always
