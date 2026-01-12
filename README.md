@@ -36,6 +36,7 @@ Psychoanalytic dream interpretation with:
 - Symbol extraction and archetype recognition (Shadow, Anima, Hero, etc.)
 - Corpus resonance matching against Jung, Freud, mythology texts
 - Semantic coordinate mapping (A=Affirmation, S=Sacred, τ=Abstraction)
+- **Guest limit**: 3 free analyses per IP, unlimited for registered users
 
 ### Therapy Sessions
 Interactive AI therapy with:
@@ -43,11 +44,19 @@ Interactive AI therapy with:
 - Defense mechanism detection (minimization, intellectualization, irony)
 - Session history and evolution profiles
 
+### User Management
+- JWT-based authentication (24-hour tokens)
+- Email verification with secure tokens
+- Password reset via email
+- Rate limiting (5 auth requests/min, account lockout after 5 failed attempts)
+- Superuser role for administrative actions
+
 ### Semantic Corpus
 27 processed books with 85,157 semantic bonds:
 - **Psychology**: Jung (5 books), Freud (6 books), Otto Rank
 - **Mythology**: Homer, Ovid, Bulfinch, Frazer, Bible (KJV)
 - **Literature**: Dostoevsky (4 books)
+- **Admin only**: Adding new books requires superuser privileges
 
 ## Architecture
 
@@ -82,24 +91,57 @@ Interactive AI therapy with:
 ```bash
 # Required
 GROQ_API_KEY=gsk_...              # Get from console.groq.com
+JWT_SECRET=your-secret-key        # Random 64-char hex string
 
 # Optional
 ANTHROPIC_API_KEY=sk-ant-...      # For Claude models
 LLM_MODEL=groq:llama-3.3-70b-versatile
-JWT_SECRET=your-secret-key
+
+# Email (for verification/password reset)
+EMAIL_SMTP_HOST=smtp.gmail.com    # Or your SMTP server
+EMAIL_SMTP_PORT=465               # 465 for SSL, 587 for STARTTLS
+EMAIL_USE_SSL=true
+EMAIL_SMTP_USER=your@email.com
+EMAIL_SMTP_PASSWORD=app-password
+EMAIL_FROM_ADDRESS=noreply@yourdomain.com
+
+# Access Control
+SUPERUSER_USERS=admin,yourusername  # Comma-separated list
+GUEST_DREAM_ANALYSIS_LIMIT=3        # Max analyses for guests
 ```
 
 ## API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/auth/register` | POST | Create account |
-| `/auth/login` | POST | Get JWT token |
-| `/dreams/analyze` | POST | Analyze a dream |
-| `/sessions/start` | POST | Start therapy session |
-| `/sessions/{id}/message` | POST | Send message |
-| `/corpus/books` | GET | List processed books |
+### Authentication
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/auth/register` | POST | - | Create account (sends verification email) |
+| `/auth/login` | POST | - | Get JWT token |
+| `/auth/me` | GET | JWT | Get current user profile |
+| `/auth/email/verify/{token}` | GET | - | Verify email address |
+| `/auth/email/resend` | POST | JWT | Resend verification email |
+| `/auth/password/forgot` | POST | - | Request password reset |
+| `/auth/password/reset` | POST | - | Reset password with token |
+
+### Dreams
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/dreams/analyze` | POST | Optional | Analyze a dream (guests: 3 max) |
+| `/dreams/save` | POST | JWT | Save dream to collection |
+| `/dreams/list` | GET | JWT | List saved dreams |
+
+### Sessions
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/sessions/start` | POST | Optional | Start therapy session |
+| `/sessions/{id}/message` | POST | Optional | Send message |
+| `/sessions/{id}/end` | POST | Optional | End session |
+
+### Corpus
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/corpus/books` | GET | - | List processed books |
+| `/corpus/process` | POST | Superuser | Add book to corpus |
 
 Full API documentation at `/docs` when running.
 
