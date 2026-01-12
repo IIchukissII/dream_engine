@@ -4,6 +4,7 @@
 *$py.class
 build/
 .cache
+.claude/
 *.cover
 .coverage
 .coverage.*
