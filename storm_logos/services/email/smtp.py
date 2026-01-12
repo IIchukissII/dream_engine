@@ -22,7 +22,7 @@ class SMTPEmailService(EmailService):
         password: Optional[str] = None,
         from_address: Optional[str] = None,
         from_name: Optional[str] = None,
-        use_tls: bool = True
+        use_ssl: Optional[bool] = None
     ):
         """Initialize SMTP email service.
 
@@ -33,15 +33,19 @@ class SMTPEmailService(EmailService):
             password: SMTP password
             from_address: Sender email address
             from_name: Sender display name
-            use_tls: Whether to use TLS
+            use_ssl: Whether to use SSL (port 465) instead of STARTTLS (port 587)
         """
         self.host = host or os.getenv('EMAIL_SMTP_HOST', 'smtp.gmail.com')
-        self.port = port or int(os.getenv('EMAIL_SMTP_PORT', '587'))
+        self.port = port or int(os.getenv('EMAIL_SMTP_PORT', '465'))
         self.username = username or os.getenv('EMAIL_SMTP_USER', '')
         self.password = password or os.getenv('EMAIL_SMTP_PASSWORD', '')
         self.from_address = from_address or os.getenv('EMAIL_FROM_ADDRESS', 'noreply@storm-logos.com')
         self.from_name = from_name or os.getenv('EMAIL_FROM_NAME', 'Storm-Logos')
-        self.use_tls = use_tls
+        # Default to SSL for port 465, STARTTLS for port 587
+        if use_ssl is not None:
+            self.use_ssl = use_ssl
+        else:
+            self.use_ssl = os.getenv('EMAIL_USE_SSL', str(self.port == 465)).lower() == 'true'
 
     async def send_email(
         self,
@@ -61,8 +65,8 @@ class SMTPEmailService(EmailService):
         Returns:
             True if sent successfully
         """
-        if not self.username or not self.password:
-            print("Warning: SMTP credentials not configured, skipping email")
+        if not self.host:
+            print("Warning: SMTP host not configured, skipping email")
             return False
 
         try:
@@ -81,24 +85,32 @@ class SMTPEmailService(EmailService):
             html_part = MIMEText(html_body, 'html', 'utf-8')
             message.attach(html_part)
 
-            # Send email
-            if self.use_tls:
-                await aiosmtplib.send(
-                    message,
-                    hostname=self.host,
-                    port=self.port,
-                    username=self.username,
-                    password=self.password,
-                    start_tls=True
-                )
+            # Build send kwargs
+            send_kwargs = {
+                'hostname': self.host,
+                'port': self.port,
+            }
+
+            # Add authentication if credentials are provided
+            if self.username and self.password:
+                send_kwargs['username'] = self.username
+                send_kwargs['password'] = self.password
+
+            # Configure SSL/TLS
+            if self.use_ssl:
+                # Port 465: Use implicit SSL (SMTPS)
+                send_kwargs['use_tls'] = True
+                send_kwargs['start_tls'] = False
+            elif self.username and self.password:
+                # Port 587: Use STARTTLS
+                send_kwargs['use_tls'] = False
+                send_kwargs['start_tls'] = True
             else:
-                await aiosmtplib.send(
-                    message,
-                    hostname=self.host,
-                    port=self.port,
-                    username=self.username,
-                    password=self.password
-                )
+                # Local SMTP without auth - no encryption
+                send_kwargs['use_tls'] = False
+                send_kwargs['start_tls'] = False
+
+            await aiosmtplib.send(message, **send_kwargs)
 
             print(f"Email sent successfully to {to}")
             return True
