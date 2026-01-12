@@ -15,13 +15,13 @@ from contextlib import asynccontextmanager
 from collections import defaultdict
 from typing import Optional
 
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 # Ensure storm_logos is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from .deps import load_env, get_user_graph, get_dream_engine, get_semantic_data
+from .deps import load_env, get_user_graph, get_dream_engine, get_semantic_data, get_superuser, get_current_user, get_optional_user
 from .routers import auth_router, sessions_router, evolution_router
 
 # Load environment
@@ -456,10 +456,6 @@ async def process_book_text(
     except Exception as e:
         import traceback
         return {"error": str(e), "trace": traceback.format_exc()}
-
-
-from fastapi import Depends
-from .deps import get_current_user, get_optional_user, get_superuser
 
 
 @app.post("/dreams/analyze")
