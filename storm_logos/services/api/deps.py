@@ -14,6 +14,13 @@ JWT_SECRET = os.environ.get("JWT_SECRET", secrets.token_hex(32))
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
 
+# Superuser settings (comma-separated list of usernames or emails)
+SUPERUSER_USERS = set(
+    u.strip().lower() for u in
+    os.environ.get("SUPERUSER_USERS", "admin,chukiss").split(",")
+    if u.strip()
+)
+
 security = HTTPBearer()
 
 
@@ -101,6 +108,22 @@ def get_optional_user(
         return get_current_user(credentials)
     except HTTPException:
         return None
+
+
+def get_superuser(
+    current_user: Dict[str, str] = Depends(get_current_user)
+) -> Dict[str, str]:
+    """Require superuser privileges.
+
+    Checks if current user's username is in SUPERUSER_USERS list.
+    """
+    username = current_user.get("username", "").lower()
+    if username not in SUPERUSER_USERS:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superuser privileges required"
+        )
+    return current_user
 
 
 # =============================================================================

@@ -356,8 +356,14 @@ async def get_corpus_books():
 
 
 @app.post("/corpus/process")
-async def process_book_text(data: dict):
-    """Process book text and load into corpus."""
+async def process_book_text(
+    data: dict,
+    superuser: dict = Depends(get_superuser)
+):
+    """Process book text and load into corpus. Requires superuser.
+
+    Only superusers can add books to the corpus.
+    """
     text = data.get("text", "")
     title = data.get("title", "Untitled")
     author = data.get("author", "Unknown")
@@ -453,7 +459,7 @@ async def process_book_text(data: dict):
 
 
 from fastapi import Depends
-from .deps import get_current_user, get_optional_user
+from .deps import get_current_user, get_optional_user, get_superuser
 
 
 @app.post("/dreams/analyze")
