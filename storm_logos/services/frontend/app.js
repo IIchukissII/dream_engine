@@ -9,12 +9,17 @@ const API_BASE = window.location.port === '3000' ? 'http://localhost:8000' : '/a
 let token = localStorage.getItem('token');
 let user = JSON.parse(localStorage.getItem('user') || 'null');
 let sessionId = null;
+let isRegisterMode = false;
 
 // DOM Elements
 const authModal = document.getElementById('auth-modal');
 const authForm = document.getElementById('auth-form');
 const authError = document.getElementById('auth-error');
+const authSuccess = document.getElementById('auth-success');
 const profileModal = document.getElementById('profile-modal');
+const settingsModal = document.getElementById('settings-modal');
+const forgotModal = document.getElementById('forgot-modal');
+const resetModal = document.getElementById('reset-modal');
 const messagesContainer = document.getElementById('messages');
 const messageInput = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
@@ -22,7 +27,10 @@ const endBtn = document.getElementById('end-btn');
 const modeSelect = document.getElementById('mode-select');
 const userInfo = document.getElementById('user-info');
 const profileBtn = document.getElementById('profile-btn');
+const settingsBtn = document.getElementById('settings-btn');
 const logoutBtn = document.getElementById('logout-btn');
+const emailField = document.getElementById('email');
+const verifyBanner = document.getElementById('verify-banner');
 
 // =============================================================================
 // API CALLS
@@ -64,8 +72,8 @@ async function login(username, password) {
     return data;
 }
 
-async function register(username, password) {
-    const data = await apiCall('/auth/register', 'POST', { username, password });
+async function register(username, email, password) {
+    const data = await apiCall('/auth/register', 'POST', { username, email, password });
     token = data.access_token;
     user = data.user;
     localStorage.setItem('token', token);
@@ -81,6 +89,41 @@ function logout() {
     localStorage.removeItem('user');
     updateUI();
     showAuthModal();
+}
+
+async function forgotPassword(email) {
+    return await apiCall('/auth/password/forgot', 'POST', { email });
+}
+
+async function resetPassword(resetToken, newPassword) {
+    return await apiCall('/auth/password/reset', 'POST', { token: resetToken, new_password: newPassword });
+}
+
+async function changePassword(currentPassword, newPassword) {
+    return await apiCall('/auth/password/change', 'POST', { current_password: currentPassword, new_password: newPassword });
+}
+
+async function verifyEmail(verifyToken) {
+    return await apiCall('/auth/email/verify', 'POST', { token: verifyToken });
+}
+
+async function resendVerification() {
+    return await apiCall('/auth/email/resend', 'POST');
+}
+
+async function updateProfile(displayName, avatarUrl) {
+    const data = await apiCall('/auth/profile', 'PUT', { display_name: displayName, avatar_url: avatarUrl });
+    // Update local user data
+    user = { ...user, display_name: displayName, avatar_url: avatarUrl };
+    localStorage.setItem('user', JSON.stringify(user));
+    return data;
+}
+
+async function getCurrentUser() {
+    const data = await apiCall('/auth/me', 'GET');
+    user = data;
+    localStorage.setItem('user', JSON.stringify(user));
+    return data;
 }
 
 // =============================================================================
@@ -254,7 +297,7 @@ function formatEndMessage(data) {
     if (data.archetypes && data.archetypes.length > 0) {
         msg += 'Archetypes manifested:\n';
         data.archetypes.forEach(a => {
-            msg += `• ${a.archetype}: ${a.symbols.join(', ')} (felt: ${a.emotions.join(', ')})\n`;
+            msg += `- ${a.archetype}: ${a.symbols.join(', ')} (felt: ${a.emotions.join(', ')})\n`;
         });
     }
 
@@ -263,7 +306,7 @@ function formatEndMessage(data) {
 }
 
 // =============================================================================
-// PROFILE
+// PROFILE (Archetype Profile)
 // =============================================================================
 
 async function loadProfile() {
@@ -346,6 +389,106 @@ function closeProfile() {
 }
 
 // =============================================================================
+// SETTINGS
+// =============================================================================
+
+async function loadSettings() {
+    if (!token) {
+        alert('Please login to access settings');
+        return;
+    }
+
+    try {
+        // Refresh user data
+        await getCurrentUser();
+
+        // Populate settings form
+        document.getElementById('settings-display-name').value = user.display_name || '';
+        document.getElementById('settings-avatar').value = user.avatar_url || '';
+
+        // Account info
+        document.getElementById('settings-username').textContent = user.username;
+        document.getElementById('settings-email').textContent = user.email || 'Not set';
+        document.getElementById('settings-verified').textContent = user.email_verified ? 'Yes' : 'No';
+        document.getElementById('settings-created').textContent = user.created_at ? user.created_at.substring(0, 10) : '-';
+
+        settingsModal.classList.remove('hidden');
+    } catch (error) {
+        alert(`Error loading settings: ${error.message}`);
+    }
+}
+
+function closeSettings() {
+    settingsModal.classList.add('hidden');
+    // Clear password fields
+    document.getElementById('current-password').value = '';
+    document.getElementById('new-password').value = '';
+    document.getElementById('confirm-password').value = '';
+    // Clear messages
+    hideMessage('profile-form-error');
+    hideMessage('profile-form-success');
+    hideMessage('password-form-error');
+    hideMessage('password-form-success');
+}
+
+// =============================================================================
+// FORGOT PASSWORD
+// =============================================================================
+
+function showForgotModal() {
+    authModal.classList.add('hidden');
+    forgotModal.classList.remove('hidden');
+    hideMessage('forgot-error');
+    hideMessage('forgot-success');
+}
+
+function closeForgotModal() {
+    forgotModal.classList.add('hidden');
+    authModal.classList.remove('hidden');
+}
+
+// =============================================================================
+// PASSWORD RESET (from email link)
+// =============================================================================
+
+function showResetModal(resetToken) {
+    resetModal.classList.remove('hidden');
+    resetModal.dataset.token = resetToken;
+    hideMessage('reset-error');
+    hideMessage('reset-success');
+}
+
+function closeResetModal() {
+    resetModal.classList.add('hidden');
+    delete resetModal.dataset.token;
+}
+
+// =============================================================================
+// EMAIL VERIFICATION
+// =============================================================================
+
+function showVerifyBanner() {
+    verifyBanner.classList.remove('hidden');
+}
+
+function closeVerifyBanner() {
+    verifyBanner.classList.add('hidden');
+}
+
+async function handleEmailVerification(verifyToken) {
+    try {
+        await verifyEmail(verifyToken);
+        // Refresh user data
+        await getCurrentUser();
+        alert('Email verified successfully!');
+        // Remove token from URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+        alert(`Verification failed: ${error.message}`);
+    }
+}
+
+// =============================================================================
 // UI UPDATES
 // =============================================================================
 
@@ -398,19 +541,47 @@ function updateSidebar(data) {
 
 function updateUI() {
     if (user) {
-        userInfo.textContent = user.username;
+        userInfo.textContent = user.display_name || user.username;
         profileBtn.style.display = 'block';
+        settingsBtn.style.display = 'block';
         logoutBtn.style.display = 'block';
         authModal.classList.add('hidden');
+
+        // Show verification banner if email not verified
+        if (user.email && !user.email_verified) {
+            showVerifyBanner();
+        } else {
+            closeVerifyBanner();
+        }
     } else {
         userInfo.textContent = 'Guest';
         profileBtn.style.display = 'none';
+        settingsBtn.style.display = 'none';
         logoutBtn.style.display = 'none';
+        closeVerifyBanner();
     }
 }
 
 function showAuthModal() {
     authModal.classList.remove('hidden');
+    setRegisterMode(false);
+}
+
+function setRegisterMode(isRegister) {
+    isRegisterMode = isRegister;
+    if (isRegister) {
+        document.getElementById('auth-title').textContent = 'Create Account';
+        emailField.classList.remove('hidden');
+        emailField.required = true;
+        document.getElementById('login-btn').textContent = 'Back to Login';
+        document.getElementById('register-btn').textContent = 'Register';
+    } else {
+        document.getElementById('auth-title').textContent = 'Welcome';
+        emailField.classList.add('hidden');
+        emailField.required = false;
+        document.getElementById('login-btn').textContent = 'Login';
+        document.getElementById('register-btn').textContent = 'Register';
+    }
 }
 
 function setLoading(isLoading) {
@@ -423,6 +594,18 @@ function setLoading(isLoading) {
     }
 }
 
+function showMessage(elementId, message) {
+    const el = document.getElementById(elementId);
+    el.textContent = message;
+    el.classList.remove('hidden');
+}
+
+function hideMessage(elementId) {
+    const el = document.getElementById(elementId);
+    el.textContent = '';
+    el.classList.add('hidden');
+}
+
 // =============================================================================
 // EVENT HANDLERS
 // =============================================================================
@@ -432,37 +615,161 @@ authForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const email = document.getElementById('email').value;
+
+    hideMessage('auth-error');
+    hideMessage('auth-success');
 
     try {
-        await login(username, password);
-        updateUI();
-        startSession();
+        if (isRegisterMode) {
+            // Switch back to login mode
+            setRegisterMode(false);
+        } else {
+            await login(username, password);
+            updateUI();
+            startSession();
+        }
     } catch (error) {
-        authError.textContent = error.message;
+        showMessage('auth-error', error.message);
     }
 });
 
 document.getElementById('register-btn').addEventListener('click', async () => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const email = document.getElementById('email').value;
 
-    if (!username || !password) {
-        authError.textContent = 'Please fill in all fields';
+    hideMessage('auth-error');
+    hideMessage('auth-success');
+
+    if (!isRegisterMode) {
+        // Switch to register mode
+        setRegisterMode(true);
+        return;
+    }
+
+    // Actually register
+    if (!username || !password || !email) {
+        showMessage('auth-error', 'Please fill in all fields');
         return;
     }
 
     try {
-        await register(username, password);
+        await register(username, email, password);
         updateUI();
         startSession();
     } catch (error) {
-        authError.textContent = error.message;
+        showMessage('auth-error', error.message);
     }
 });
 
 document.getElementById('skip-auth').addEventListener('click', () => {
     authModal.classList.add('hidden');
     startSession();
+});
+
+// Forgot password link
+document.getElementById('forgot-password-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    showForgotModal();
+});
+
+// Forgot password form
+document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('forgot-email').value;
+
+    hideMessage('forgot-error');
+    hideMessage('forgot-success');
+
+    try {
+        await forgotPassword(email);
+        showMessage('forgot-success', 'If that email exists, a reset link has been sent.');
+    } catch (error) {
+        showMessage('forgot-error', error.message);
+    }
+});
+
+// Password reset form
+document.getElementById('reset-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const newPassword = document.getElementById('reset-password').value;
+    const confirmPassword = document.getElementById('reset-confirm').value;
+    const resetToken = resetModal.dataset.token;
+
+    hideMessage('reset-error');
+    hideMessage('reset-success');
+
+    if (newPassword !== confirmPassword) {
+        showMessage('reset-error', 'Passwords do not match');
+        return;
+    }
+
+    try {
+        await resetPassword(resetToken, newPassword);
+        showMessage('reset-success', 'Password reset successfully! You can now login.');
+        setTimeout(() => {
+            closeResetModal();
+            showAuthModal();
+        }, 2000);
+    } catch (error) {
+        showMessage('reset-error', error.message);
+    }
+});
+
+// Profile form (in settings)
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const displayName = document.getElementById('settings-display-name').value;
+    const avatarUrl = document.getElementById('settings-avatar').value;
+
+    hideMessage('profile-form-error');
+    hideMessage('profile-form-success');
+
+    try {
+        await updateProfile(displayName || null, avatarUrl || null);
+        showMessage('profile-form-success', 'Profile updated successfully!');
+        updateUI();
+    } catch (error) {
+        showMessage('profile-form-error', error.message);
+    }
+});
+
+// Change password form
+document.getElementById('change-password-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    hideMessage('password-form-error');
+    hideMessage('password-form-success');
+
+    if (newPassword !== confirmPassword) {
+        showMessage('password-form-error', 'New passwords do not match');
+        return;
+    }
+
+    try {
+        await changePassword(currentPassword, newPassword);
+        showMessage('password-form-success', 'Password changed successfully!');
+        // Clear form
+        document.getElementById('current-password').value = '';
+        document.getElementById('new-password').value = '';
+        document.getElementById('confirm-password').value = '';
+    } catch (error) {
+        showMessage('password-form-error', error.message);
+    }
+});
+
+// Resend verification
+document.getElementById('resend-verify-btn').addEventListener('click', async () => {
+    try {
+        await resendVerification();
+        alert('Verification email sent!');
+    } catch (error) {
+        alert(`Error: ${error.message}`);
+    }
 });
 
 // Send message
@@ -493,8 +800,13 @@ document.getElementById('pause-btn').addEventListener('click', pauseSession);
 // History
 document.getElementById('history-btn').addEventListener('click', loadHistory);
 
-// Profile
+// Profile (Archetype)
 profileBtn.addEventListener('click', loadProfile);
+
+// Settings
+settingsBtn.addEventListener('click', loadSettings);
+
+// Logout
 logoutBtn.addEventListener('click', logout);
 
 document.getElementById('archetype-select').addEventListener('change', (e) => {
@@ -506,7 +818,34 @@ window.addEventListener('click', (e) => {
     if (e.target === profileModal) {
         closeProfile();
     }
+    if (e.target === settingsModal) {
+        closeSettings();
+    }
+    if (e.target === forgotModal) {
+        closeForgotModal();
+    }
 });
+
+// =============================================================================
+// URL PARAMETER HANDLING (for email links)
+// =============================================================================
+
+function handleUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    // Handle email verification
+    const verifyToken = params.get('verify');
+    if (verifyToken) {
+        handleEmailVerification(verifyToken);
+    }
+
+    // Handle password reset
+    const resetToken = params.get('reset');
+    if (resetToken) {
+        authModal.classList.add('hidden');
+        showResetModal(resetToken);
+    }
+}
 
 // =============================================================================
 // INIT
@@ -520,6 +859,9 @@ async function loadInfo() {
         document.getElementById('session-model').textContent = 'unknown';
     }
 }
+
+// Check URL params first
+handleUrlParams();
 
 updateUI();
 loadInfo();

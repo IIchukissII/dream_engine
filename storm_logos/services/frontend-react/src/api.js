@@ -57,8 +57,8 @@ export async function login(username, password) {
   return data;
 }
 
-export async function register(username, password) {
-  const data = await api('/auth/register', 'POST', { username, password });
+export async function register(username, email, password) {
+  const data = await api('/auth/register', 'POST', { username, email, password });
   setToken(data.access_token);
   setUser(data.user);
   return data;
@@ -67,6 +67,29 @@ export async function register(username, password) {
 export function logout() {
   setToken(null);
   setUser(null);
+}
+
+// Password management
+export const forgotPassword = (email) => api('/auth/password/forgot', 'POST', { email });
+export const resetPassword = (resetToken, newPassword) => api('/auth/password/reset', 'POST', { token: resetToken, new_password: newPassword });
+export const changePassword = (currentPassword, newPassword) => api('/auth/password/change', 'POST', { current_password: currentPassword, new_password: newPassword });
+
+// Email verification
+export const verifyEmail = (verifyToken) => api('/auth/email/verify', 'POST', { token: verifyToken });
+export const resendVerification = () => api('/auth/email/resend', 'POST');
+
+// Profile
+export async function updateProfile(displayName, avatarUrl) {
+  const data = await api('/auth/profile', 'PUT', { display_name: displayName, avatar_url: avatarUrl });
+  const user = getUser();
+  setUser({ ...user, display_name: displayName, avatar_url: avatarUrl });
+  return data;
+}
+
+export async function getCurrentUser() {
+  const data = await api('/auth/me', 'GET');
+  setUser(data);
+  return data;
 }
 
 // Sessions
@@ -78,7 +101,7 @@ export const resumeSession = (sessionId) => api(`/sessions/${sessionId}/resume`,
 export const deleteSession = (sessionId) => api(`/sessions/${sessionId}`, 'DELETE');
 export const getHistory = () => api('/sessions/history');
 
-// Profile
+// Profile (Archetype)
 export const getProfile = () => api('/evolution/profile');
 export const getEvolution = (archetype) => api(`/evolution/archetype/${archetype}`);
 
@@ -94,3 +117,6 @@ export const analyzeDream = (dream) => api('/dreams/analyze', 'POST', { dream })
 export const saveDream = (data) => api('/dreams/save', 'POST', data);
 export const listDreams = () => api('/dreams/list');
 export const deleteDream = (dreamId) => api(`/dreams/${dreamId}`, 'DELETE');
+
+// Admin
+export const getAdminUsers = () => api('/admin/users');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import * as api from '../api'
 
-export default function BooksTab() {
+export default function BooksTab({ user }) {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -59,9 +59,11 @@ export default function BooksTab() {
         <h2>Corpus Library</h2>
         <div className="books-header-right">
           <span className="book-count">{books.length} books</span>
-          <button onClick={() => setShowForm(!showForm)}>
-            {showForm ? 'Cancel' : '+ Add Book'}
-          </button>
+          {user?.is_superuser && (
+            <button onClick={() => setShowForm(!showForm)}>
+              {showForm ? 'Cancel' : '+ Add Book'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -141,8 +143,12 @@ export default function BooksTab() {
       {books.length === 0 && !error && !showForm && (
         <div className="empty-state-box">
           <p>No books in corpus yet</p>
-          <p className="hint">Click "+ Add Book" to process text or run CLI:</p>
-          <code>python -m storm_logos.scripts.process_books --priority</code>
+          {user?.is_superuser && (
+            <>
+              <p className="hint">Click "+ Add Book" to process text or run CLI:</p>
+              <code>python -m storm_logos.scripts.process_books --priority</code>
+            </>
+          )}
         </div>
       )}
     </div>

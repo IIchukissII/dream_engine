@@ -43,6 +43,7 @@ class UserResponse(BaseModel):
     username: str
     email: Optional[str] = None
     email_verified: bool = False
+    is_superuser: bool = False
     display_name: Optional[str] = None
     avatar_url: Optional[str] = None
     created_at: str

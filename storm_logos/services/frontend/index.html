@@ -14,15 +14,56 @@
                 <h2 id="auth-title">Welcome</h2>
                 <form id="auth-form">
                     <input type="text" id="username" placeholder="Username" required>
+                    <input type="email" id="email" placeholder="Email" class="hidden">
                     <input type="password" id="password" placeholder="Password" required>
                     <div class="auth-buttons">
                         <button type="submit" id="login-btn">Login</button>
                         <button type="button" id="register-btn">Register</button>
                     </div>
+                    <div class="auth-links">
+                        <a href="#" id="forgot-password-link">Forgot password?</a>
+                    </div>
                     <button type="button" id="skip-auth" class="secondary">Continue as Guest</button>
                 </form>
                 <p id="auth-error" class="error"></p>
+                <p id="auth-success" class="success hidden"></p>
             </div>
+        </div>
+
+        <!-- Forgot Password Modal -->
+        <div id="forgot-modal" class="modal hidden">
+            <div class="modal-content">
+                <button class="close-btn" onclick="closeForgotModal()">&times;</button>
+                <h2>Reset Password</h2>
+                <p class="modal-subtitle">Enter your email to receive a password reset link.</p>
+                <form id="forgot-form">
+                    <input type="email" id="forgot-email" placeholder="Email address" required>
+                    <button type="submit">Send Reset Link</button>
+                </form>
+                <p id="forgot-error" class="error"></p>
+                <p id="forgot-success" class="success hidden"></p>
+            </div>
+        </div>
+
+        <!-- Password Reset Modal (for token-based reset) -->
+        <div id="reset-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Set New Password</h2>
+                <form id="reset-form">
+                    <input type="password" id="reset-password" placeholder="New password" required minlength="6">
+                    <input type="password" id="reset-confirm" placeholder="Confirm password" required>
+                    <button type="submit">Reset Password</button>
+                </form>
+                <p id="reset-error" class="error"></p>
+                <p id="reset-success" class="success hidden"></p>
+            </div>
+        </div>
+
+        <!-- Email Verification Banner -->
+        <div id="verify-banner" class="banner hidden">
+            <span>Please verify your email address.</span>
+            <button id="resend-verify-btn" class="small">Resend verification email</button>
+            <button class="close-banner" onclick="closeVerifyBanner()">&times;</button>
         </div>
 
         <!-- Main App -->
@@ -31,6 +72,7 @@
             <div class="header-right">
                 <span id="user-info"></span>
                 <button id="history-btn" class="icon-btn" title="Session History">📋</button>
+                <button id="settings-btn" class="icon-btn" title="Settings">⚙️</button>
                 <button id="profile-btn" class="icon-btn" title="Profile">👤</button>
                 <button id="logout-btn" class="icon-btn" title="Logout">🚪</button>
             </div>
@@ -93,10 +135,10 @@
             </div>
         </div>
 
-        <!-- Profile Modal -->
+        <!-- Profile Modal (Archetype Profile) -->
         <div id="profile-modal" class="modal hidden">
             <div class="modal-content large">
-                <button class="close-btn" onclick="closeProfile()">×</button>
+                <button class="close-btn" onclick="closeProfile()">&times;</button>
                 <h2>Your Archetype Profile</h2>
                 <div id="profile-content">
                     <div id="profile-stats"></div>
@@ -114,6 +156,62 @@
                             <option value="death_rebirth">Death/Rebirth</option>
                         </select>
                         <div id="evolution-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settings-modal" class="modal hidden">
+            <div class="modal-content large">
+                <button class="close-btn" onclick="closeSettings()">&times;</button>
+                <h2>Account Settings</h2>
+
+                <div class="settings-section">
+                    <h3>Profile</h3>
+                    <form id="profile-form">
+                        <div class="form-group">
+                            <label>Display Name</label>
+                            <input type="text" id="settings-display-name" placeholder="Display name">
+                        </div>
+                        <div class="form-group">
+                            <label>Avatar URL</label>
+                            <input type="url" id="settings-avatar" placeholder="https://example.com/avatar.jpg">
+                        </div>
+                        <button type="submit">Save Profile</button>
+                    </form>
+                    <p id="profile-form-error" class="error"></p>
+                    <p id="profile-form-success" class="success hidden"></p>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Change Password</h3>
+                    <form id="change-password-form">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" id="current-password" required>
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" id="new-password" required minlength="6">
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" id="confirm-password" required>
+                        </div>
+                        <button type="submit">Change Password</button>
+                    </form>
+                    <p id="password-form-error" class="error"></p>
+                    <p id="password-form-success" class="success hidden"></p>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Account Info</h3>
+                    <div id="account-info">
+                        <p>Username: <span id="settings-username">-</span></p>
+                        <p>Email: <span id="settings-email">-</span></p>
+                        <p>Email Verified: <span id="settings-verified">-</span></p>
+                        <p>Member Since: <span id="settings-created">-</span></p>
                     </div>
                 </div>
             </div>

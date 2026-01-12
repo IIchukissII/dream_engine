@@ -8,7 +8,7 @@ from ..models import (
     PasswordResetRequest, PasswordReset, PasswordChange,
     EmailVerify, ProfileUpdate, MessageResponse
 )
-from ..deps import get_user_graph, create_token, get_current_user
+from ..deps import get_user_graph, create_token, get_current_user, SUPERUSER_USERS
 from ..rate_limiter import get_rate_limiter
 from ..tokens import get_token_service
 from ...email import get_email_service
@@ -26,6 +26,7 @@ def _user_to_response(user) -> UserResponse:
         username=user.username,
         email=user.email,
         email_verified=user.email_verified,
+        is_superuser=user.username.lower() in SUPERUSER_USERS,
         display_name=user.display_name,
         avatar_url=user.avatar_url,
         created_at=user.created_at,

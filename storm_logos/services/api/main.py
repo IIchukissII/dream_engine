@@ -458,6 +458,40 @@ async def process_book_text(
         return {"error": str(e), "trace": traceback.format_exc()}
 
 
+# =============================================================================
+# ADMIN ENDPOINTS
+# =============================================================================
+@app.get("/admin/users")
+async def get_admin_users(
+    superuser: dict = Depends(get_superuser)
+):
+    """Get all users with activity statistics. Superuser only."""
+    try:
+        ug = get_user_graph()
+        users = ug.get_all_users_stats()
+
+        # Calculate summary stats
+        total_users = len(users)
+        verified_users = sum(1 for u in users if u.get("email_verified"))
+        total_sessions = sum(u.get("session_count", 0) for u in users)
+        total_dreams = sum(u.get("dream_count", 0) for u in users)
+
+        return {
+            "users": users,
+            "summary": {
+                "total_users": total_users,
+                "verified_users": verified_users,
+                "unverified_users": total_users - verified_users,
+                "total_sessions": total_sessions,
+                "total_dreams": total_dreams,
+                "total_activity": total_sessions + total_dreams,
+            }
+        }
+    except Exception as e:
+        import traceback
+        return {"users": [], "summary": {}, "error": str(e), "trace": traceback.format_exc()}
+
+
 @app.post("/dreams/analyze")
 async def analyze_dream(
     data: dict,

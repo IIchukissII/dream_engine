@@ -6,8 +6,10 @@ import Sidebar from './components/Sidebar'
 import Chat from './components/Chat'
 import HistoryModal from './components/HistoryModal'
 import ProfileModal from './components/ProfileModal'
+import SettingsModal from './components/SettingsModal'
 import BooksTab from './components/BooksTab'
 import DreamTab from './components/DreamTab'
+import AdminDashboard from './components/AdminDashboard'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('chat')
@@ -22,13 +24,34 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(!api.getToken())
   const [showHistory, setShowHistory] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     loadInfo()
+    handleEmailVerification()
     if (api.getToken()) {
       handleStartSession()
     }
   }, [])
+
+  async function handleEmailVerification() {
+    const params = new URLSearchParams(window.location.search)
+    const verifyToken = params.get('verify')
+    if (verifyToken) {
+      try {
+        await api.verifyEmail(verifyToken)
+        // Refresh user data to get updated email_verified status
+        if (api.getToken()) {
+          const updatedUser = await api.getCurrentUser()
+          setUser(updatedUser)
+        }
+        alert('Email verified successfully!')
+        window.history.replaceState({}, document.title, window.location.pathname)
+      } catch (err) {
+        alert(`Verification failed: ${err.message}`)
+      }
+    }
+  }
 
   async function loadInfo() {
     try {
@@ -46,8 +69,8 @@ export default function App() {
     handleStartSession()
   }
 
-  async function handleRegister(username, password) {
-    await api.register(username, password)
+  async function handleRegister(username, email, password) {
+    await api.register(username, email, password)
     setUser(api.getUser())
     setShowAuth(false)
     handleStartSession()
@@ -64,6 +87,19 @@ export default function App() {
   function handleSkipAuth() {
     setShowAuth(false)
     handleStartSession()
+  }
+
+  function handleUserUpdate() {
+    setUser(api.getUser())
+  }
+
+  async function handleResendVerification() {
+    try {
+      await api.resendVerification()
+      alert('Verification email sent!')
+    } catch (err) {
+      alert(`Error: ${err.message}`)
+    }
   }
 
   async function handleStartSession(mode = null) {
@@ -203,11 +239,20 @@ export default function App() {
         <ProfileModal onClose={() => setShowProfile(false)} />
       )}
 
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          onUserUpdate={handleUserUpdate}
+        />
+      )}
+
       <Header
         user={user}
         onHistory={() => setShowHistory(true)}
         onProfile={() => setShowProfile(true)}
+        onSettings={() => setShowSettings(true)}
         onLogout={handleLogout}
+        onResendVerification={handleResendVerification}
       />
 
       <div className="tabs">
@@ -229,6 +274,14 @@ export default function App() {
         >
           Library
         </button>
+        {user?.is_superuser && (
+          <button
+            className={`tab ${activeTab === 'admin' ? 'active' : ''}`}
+            onClick={() => setActiveTab('admin')}
+          >
+            Admin
+          </button>
+        )}
       </div>
 
       <main>
@@ -251,7 +304,8 @@ export default function App() {
           </>
         )}
         {activeTab === 'dream' && <DreamTab />}
-        {activeTab === 'books' && <BooksTab />}
+        {activeTab === 'books' && <BooksTab user={user} />}
+        {activeTab === 'admin' && <AdminDashboard user={user} />}
       </main>
     </div>
   )

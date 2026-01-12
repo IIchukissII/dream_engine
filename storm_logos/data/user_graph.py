@@ -741,6 +741,36 @@ class UserGraph:
                 ]
         return results
 
+    def get_all_users_stats(self) -> List[Dict[str, Any]]:
+        """Get all users with their activity statistics. For admin dashboard."""
+        query = """
+        MATCH (u:User)
+        OPTIONAL MATCH (u)-[:SESSION]->(s:TherapySession)
+        OPTIONAL MATCH (u)-[:DREAMED]->(d:Dream)
+        WITH u, count(DISTINCT s) as session_count, count(DISTINCT d) as dream_count
+        RETURN u.user_id as user_id, u.username as username,
+               u.email as email, u.email_verified as email_verified,
+               u.display_name as display_name, u.created_at as created_at,
+               session_count, dream_count
+        ORDER BY u.created_at DESC
+        """
+        results = []
+        with self._neo4j._driver.session() as session:
+            records = session.run(query)
+            for r in records:
+                results.append({
+                    "user_id": r["user_id"],
+                    "username": r["username"],
+                    "email": r["email"],
+                    "email_verified": r["email_verified"] or False,
+                    "display_name": r["display_name"],
+                    "created_at": r["created_at"],
+                    "session_count": r["session_count"],
+                    "dream_count": r["dream_count"],
+                    "total_activity": r["session_count"] + r["dream_count"],
+                })
+        return results
+
     def get_user_archetype_profile(self, user_id: str) -> Dict[str, Any]:
         """Get comprehensive archetype profile for a user."""
         query = """
