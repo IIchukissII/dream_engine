@@ -1,0 +1,48 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Node Exporter - System metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor - Container metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Storm-Logos API metrics
+  - job_name: 'storm-api'
+    static_configs:
+      - targets: ['storm-api:8000']
+    metrics_path: '/metrics'
+
+  # Storm-Logos Therapist metrics
+  - job_name: 'storm-therapist'
+    static_configs:
+      - targets: ['storm-therapist:8001']
+    metrics_path: '/metrics'
+
+  # Storm-Logos Semantic metrics
+  - job_name: 'storm-semantic'
+    static_configs:
+      - targets: ['storm-semantic:8002']
+    metrics_path: '/metrics'
+
+  # Neo4j metrics (if enabled)
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: '/metrics'
+
+  # Redis metrics (via redis-exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']

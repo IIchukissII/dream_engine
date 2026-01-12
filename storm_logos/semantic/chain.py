@@ -235,3 +235,7 @@ def get_chain() -> ChainReaction:
     if _chain_instance is None:
         _chain_instance = ChainReaction()
     return _chain_instance
+
+
+# Alias for backwards compatibility
+Chain = ChainReaction
