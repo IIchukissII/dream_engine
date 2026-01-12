@@ -13,6 +13,7 @@ import time
 from pathlib import Path
 from contextlib import asynccontextmanager
 from collections import defaultdict
+from typing import Optional
 
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
