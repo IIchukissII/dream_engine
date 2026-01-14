@@ -1,0 +1,123 @@
+name: Build and Push Docker Images
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - 'storm_logos/**'
+      - 'docker/**'
+      - '.github/workflows/build-and-push.yaml'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/storm-logos
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        service:
+          - name: api
+            dockerfile: docker/Dockerfile.api
+          - name: therapist
+            dockerfile: docker/Dockerfile.therapist
+          - name: semantic
+            dockerfile: docker/Dockerfile.semantic
+          - name: frontend
+            dockerfile: docker/Dockerfile.frontend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image tags
+        id: tags
+        run: |
+          IMAGE="${{ env.IMAGE_PREFIX }}-${{ matrix.service.name }}"
+          SHA_SHORT=$(git rev-parse --short HEAD)
+          TIMESTAMP=$(date +%Y%m%d%H%M%S)
+
+          # Base tags
+          TAGS="${IMAGE}:${SHA_SHORT}"
+          TAGS="${TAGS},${IMAGE}:${SHA_SHORT}-${TIMESTAMP}"
+
+          # Branch-specific tags
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            TAGS="${TAGS},${IMAGE}:latest"
+            TAGS="${TAGS},${IMAGE}:production"
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            TAGS="${TAGS},${IMAGE}:staging"
+            TAGS="${TAGS},${IMAGE}:develop"
+          fi
+
+          # PR tags
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            TAGS="${TAGS},${IMAGE}:pr-${{ github.event.pull_request.number }}"
+          fi
+
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+          echo "Generated tags: ${TAGS}"
+
+      - name: Build and push ${{ matrix.service.name }} image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+          build-args: |
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            GIT_SHA=${{ github.sha }}
+            VERSION=${{ github.ref_name }}
+
+  # Deployment summary
+  notify:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Deployment Summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "**Environment:** Production" >> $GITHUB_STEP_SUMMARY
+            echo "**ArgoCD App:** storm-logos-production" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Environment:** Staging" >> $GITHUB_STEP_SUMMARY
+            echo "**ArgoCD App:** storm-logos-staging" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Images pushed to ghcr.io/${{ github.repository_owner }}/storm-logos-*" >> $GITHUB_STEP_SUMMARY
+          echo "ArgoCD Image Updater will detect and deploy automatically." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "K8s manifests: https://github.com/IIchukissII/dream_engine_k8s" >> $GITHUB_STEP_SUMMARY
