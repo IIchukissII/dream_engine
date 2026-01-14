@@ -16,7 +16,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/storm-logos
 
 jobs:
   build-and-push:
@@ -54,7 +53,9 @@ jobs:
       - name: Generate image tags
         id: tags
         run: |
-          IMAGE="${{ env.IMAGE_PREFIX }}-${{ matrix.service.name }}"
+          # Docker tags must be lowercase
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE="ghcr.io/${OWNER}/storm-logos-${{ matrix.service.name }}"
           SHA_SHORT=$(git rev-parse --short HEAD)
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
 
@@ -117,7 +118,8 @@ jobs:
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Images pushed to ghcr.io/${{ github.repository_owner }}/storm-logos-*" >> $GITHUB_STEP_SUMMARY
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          echo "Images pushed to ghcr.io/${OWNER}/storm-logos-*" >> $GITHUB_STEP_SUMMARY
           echo "ArgoCD Image Updater will detect and deploy automatically." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "K8s manifests: https://github.com/IIchukissII/dream_engine_k8s" >> $GITHUB_STEP_SUMMARY
