@@ -13,7 +13,7 @@ import time
 from pathlib import Path
 from contextlib import asynccontextmanager
 from collections import defaultdict
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, Request, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Ensure storm_logos is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 
-from .deps import load_env, get_user_graph, get_dream_engine, get_semantic_data, get_superuser, get_current_user, get_optional_user
+from .deps import load_env, get_user_graph, get_dream_engine, get_semantic_data, get_superuser, get_current_user
 from .routers import auth_router, sessions_router, evolution_router
 
 # Load environment
@@ -265,13 +265,13 @@ async def metrics():
     try:
         data = get_semantic_data()
         postgres_up = 1 if data and data.n_coordinates > 0 else 0
-    except:
+    except Exception:
         postgres_up = 0
 
     try:
         ug = get_user_graph()
         neo4j_up = 1 if ug._connected else 0
-    except:
+    except Exception:
         neo4j_up = 0
 
     metrics_data.append(f"# HELP storm_logos_postgres_up PostgreSQL connectivity")
@@ -357,8 +357,8 @@ async def get_corpus_books():
 
 @app.post("/corpus/process")
 async def process_book_text(
-    data: dict,
-    superuser: dict = Depends(get_superuser)
+    data: Dict[str, Any],
+    superuser: Dict[str, Any] = Depends(get_superuser)
 ):
     """Process book text and load into corpus. Requires superuser.
 
@@ -463,7 +463,7 @@ async def process_book_text(
 # =============================================================================
 @app.get("/admin/users")
 async def get_admin_users(
-    superuser: dict = Depends(get_superuser)
+    superuser: Dict[str, Any] = Depends(get_superuser)
 ):
     """Get all users with activity statistics. Superuser only."""
     try:
@@ -492,113 +492,10 @@ async def get_admin_users(
         return {"users": [], "summary": {}, "error": str(e), "trace": traceback.format_exc()}
 
 
-@app.post("/dreams/analyze")
-async def analyze_dream(
-    data: dict,
-    request: Request,
-    current_user: Optional[dict] = Depends(get_optional_user)
-):
-    """Quick dream analysis without conversation.
-
-    Returns symbols, archetypes, interpretation, and corpus resonances.
-    Guest users limited to 3 analyses. Authenticated users unlimited.
-    """
-    from .rate_limiter import get_rate_limiter
-
-    dream_text = data.get("dream", "").strip()
-
-    if not dream_text or len(dream_text) < 20:
-        return {"error": "Dream text too short (min 20 chars)"}
-
-    # Check guest limit (authenticated users bypass)
-    if not current_user:
-        limiter = get_rate_limiter()
-        allowed, info = limiter.check_guest_dream_limit(request)
-        if not allowed:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Guest limit reached ({info['limit']} analyses). Please register for unlimited access.",
-                headers={"X-Guest-Limit": str(info['limit']), "X-Guest-Used": str(info['used'])}
-            )
-
-    try:
-        engine = get_dream_engine()
-        analysis = engine.analyze(dream_text)
-
-        # Format symbols
-        symbols = []
-        for s in analysis.symbols:
-            symbols.append({
-                "text": s.raw_text,
-                "archetype": s.archetype or "",
-                "interpretation": s.interpretation or "",
-                "A": s.bond.A,
-                "S": s.bond.S,
-                "tau": s.bond.tau,
-                "corpus_sources": s.corpus_sources or [],
-            })
-
-        # Get archetype scores
-        state = analysis.state
-        archetypes = {
-            "shadow": state.shadow,
-            "anima_animus": state.anima_animus,
-            "self": state.self_archetype,
-            "mother": state.mother,
-            "father": state.father,
-            "hero": state.hero,
-            "trickster": state.trickster,
-            "death_rebirth": state.death_rebirth,
-        }
-
-        dominant, score = state.dominant_archetype()
-
-        # Increment guest count after successful analysis
-        guest_info = None
-        if not current_user:
-            limiter = get_rate_limiter()
-            count = limiter.increment_guest_dream_count(request)
-            guest_info = {
-                "used": count,
-                "remaining": max(0, 3 - count),
-                "limit": 3,
-            }
-
-        result = {
-            "dream": dream_text,
-            "symbols": symbols,
-            "archetypes": archetypes,
-            "dominant_archetype": dominant,
-            "dominant_score": score,
-            "coordinates": {
-                "A": state.A,
-                "S": state.S,
-                "tau": state.tau,
-            },
-            "markers": {
-                "transformation": state.transformation,
-                "journey": state.journey,
-                "confrontation": state.confrontation,
-            },
-            "interpretation": analysis.interpretation,
-            "corpus_resonances": analysis.corpus_resonances,
-            "timestamp": analysis.timestamp,
-        }
-
-        if guest_info:
-            result["guest_limit"] = guest_info
-
-        return result
-
-    except Exception as e:
-        import traceback
-        return {"error": str(e), "trace": traceback.format_exc()}
-
-
 @app.post("/dreams/save")
 async def save_dream(
-    data: dict,
-    current_user: dict = Depends(get_current_user)
+    data: Dict[str, Any],
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Save a dream analysis to user's collection."""
     from datetime import datetime
@@ -659,7 +556,7 @@ async def save_dream(
 
 @app.get("/dreams/list")
 async def list_dreams(
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get user's saved dreams."""
     try:
@@ -699,7 +596,7 @@ async def list_dreams(
 @app.delete("/dreams/{dream_id}")
 async def delete_dream(
     dream_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Delete a saved dream."""
     try:

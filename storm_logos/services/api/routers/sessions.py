@@ -28,7 +28,7 @@ router = APIRouter(prefix="/sessions", tags=["sessions"])
 
 @router.get("/history")
 async def get_session_history(
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Get user's session history."""
     ug = get_user_graph()
@@ -64,12 +64,12 @@ class SessionState:
     intervention_direction: str = ""
 
     # Extracted content
-    symbols: List[Dict] = field(default_factory=list)
+    symbols: List[Dict[str, Any]] = field(default_factory=list)
     themes: List[str] = field(default_factory=list)
     emotions: List[str] = field(default_factory=list)
 
     # Conversation history
-    history: List[Dict] = field(default_factory=list)
+    history: List[Dict[str, Any]] = field(default_factory=list)
     started_at: str = ""
 
 
@@ -97,14 +97,14 @@ Return only valid JSON."""
         if "{" in response:
             json_str = response[response.index("{"):response.rindex("}")+1]
             return json.loads(json_str)
-    except:
+    except (json.JSONDecodeError, ValueError, AttributeError):
         pass
 
     return {"type": "unclear", "mode_hint": "unclear", "contains_dream": False,
             "emotions_detected": [], "key_symbols": []}
 
 
-def _generate_therapy_response(therapist, patient_text: str, state: SessionState) -> Dict:
+def _generate_therapy_response(therapist, patient_text: str, state: SessionState) -> Dict[str, Any]:
     """Generate response using Therapist class with full theory.
 
     Uses:
@@ -188,7 +188,7 @@ Respond with depth psychological insight. Focus on one aspect at a time."""
     return engine._call_llm(system, prompt, max_tokens=300)
 
 
-def _extract_archetypes(engine, state: SessionState) -> List[Dict]:
+def _extract_archetypes(engine, state: SessionState) -> List[Dict[str, Any]]:
     """Extract archetypes from session using LLM analysis."""
     if not state.history:
         return []
@@ -217,7 +217,7 @@ Extract archetypes. Return only valid JSON array."""
         if "[" in response:
             json_str = response[response.index("["):response.rindex("]")+1]
             return json.loads(json_str)
-    except:
+    except (json.JSONDecodeError, ValueError, AttributeError):
         pass
 
     return []
@@ -226,7 +226,7 @@ Extract archetypes. Return only valid JSON array."""
 @router.post("/start", response_model=SessionResponse)
 async def start_session(
     data: SessionStart = None,
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """Start a new therapy/dream session."""
     user_id = current_user["user_id"] if current_user else None
@@ -282,7 +282,7 @@ async def start_session(
 async def send_message(
     session_id: str,
     data: SessionMessage,
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """Send a message in the session.
 
@@ -431,7 +431,7 @@ async def send_message(
 @router.post("/{session_id}/end", response_model=SessionEnd)
 async def end_session(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """End a session and extract archetypes."""
     state = get_session(session_id)
@@ -455,54 +455,70 @@ async def end_session(
                 detail="This is not your session"
             )
 
-    engine = get_dream_engine()
-    therapist = get_therapist()
+    # Once security checks pass, ensure session cleanup happens no matter what
+    archetypes: List[Dict[str, Any]] = []
+    try:
+        engine = get_dream_engine()
+        therapist = get_therapist()
 
-    # Extract archetypes
-    archetypes = _extract_archetypes(engine, state)
-
-    # Get session summary from therapist if available
-    session_data = therapist.get_session_data()
-    summary_stats = session_data.get("summary", {})
-
-    # Save to user graph if authenticated
-    if state.user_id:
+        # Extract archetypes (optional - don't fail if this errors)
         try:
-            from storm_logos.data.user_graph import SessionRecord, ArchetypeManifestation as AM
-
-            manifestations = [
-                AM(
-                    archetype=a.get("archetype", "unknown"),
-                    symbols=a.get("symbols", []),
-                    emotions=a.get("emotions", []),
-                    context=a.get("context", ""),
-                )
-                for a in archetypes
-            ]
-
-            record = SessionRecord(
-                session_id=session_id,
-                user_id=state.user_id,
-                mode=state.mode,
-                timestamp=state.started_at,
-                dream_text=state.dream_text,
-                archetypes=manifestations,
-                symbols=[s.get("text", "") for s in state.symbols],
-                emotions=list(set(state.emotions)),
-                themes=list(set(state.themes)),
-                summary=f"{state.turn} turns, A={state.A:+.2f}, S={state.S:+.2f}",
-            )
-
-            ug = get_user_graph()
-            ug.save_session(record)
+            archetypes = _extract_archetypes(engine, state)
         except Exception as e:
-            print(f"Warning: Could not save to user graph: {e}")
+            import logging
+            logging.warning(f"Could not extract archetypes: {e}")
 
-    # Reset therapist for next session
-    therapist.reset()
+        # Get session summary from therapist if available
+        try:
+            session_data = therapist.get_session_data()
+        except Exception as e:
+            import logging
+            logging.warning(f"Could not get session data: {e}")
 
-    # Remove from active sessions
-    remove_session(session_id)
+        # Save to user graph if authenticated (optional - don't fail if this errors)
+        if state.user_id:
+            try:
+                from storm_logos.data.user_graph import SessionRecord, ArchetypeManifestation as AM
+
+                manifestations = [
+                    AM(
+                        archetype=a.get("archetype", "unknown"),
+                        symbols=a.get("symbols", []),
+                        emotions=a.get("emotions", []),
+                        context=a.get("context", ""),
+                    )
+                    for a in archetypes
+                ]
+
+                record = SessionRecord(
+                    session_id=session_id,
+                    user_id=state.user_id,
+                    mode=state.mode,
+                    timestamp=state.started_at,
+                    dream_text=state.dream_text,
+                    archetypes=manifestations,
+                    symbols=[s.get("text", "") for s in state.symbols],
+                    emotions=list(set(state.emotions)),
+                    themes=list(set(state.themes)),
+                    summary=f"{state.turn} turns, A={state.A:+.2f}, S={state.S:+.2f}",
+                )
+
+                ug = get_user_graph()
+                ug.save_session(record)
+            except Exception as e:
+                import logging
+                logging.warning(f"Could not save to user graph: {e}")
+
+    finally:
+        # ALWAYS clean up session state, even if errors occurred above
+        try:
+            therapist = get_therapist()
+            therapist.reset()
+        except Exception:
+            pass
+
+        # ALWAYS remove from active sessions
+        remove_session(session_id)
 
     return SessionEnd(
         session_id=session_id,
@@ -519,7 +535,7 @@ async def end_session(
 @router.get("/{session_id}", response_model=SessionResponse)
 async def get_session_state(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """Get current session state."""
     state = get_session(session_id)
@@ -557,7 +573,7 @@ async def get_session_state(
 @router.delete("/{session_id}")
 async def delete_session(
     session_id: str,
-    current_user: Optional[dict] = Depends(get_optional_user)
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user)
 ):
     """Delete a session without saving (discard)."""
     state = get_session(session_id)
@@ -581,12 +597,15 @@ async def delete_session(
                 detail="This is not your session"
             )
 
-    # Reset therapist
-    therapist = get_therapist()
-    therapist.reset()
-
-    # Just remove from active sessions - don't save anything
-    remove_session(session_id)
+    # Once security checks pass, ensure cleanup happens no matter what
+    try:
+        therapist = get_therapist()
+        therapist.reset()
+    except Exception:
+        pass
+    finally:
+        # ALWAYS remove from active sessions
+        remove_session(session_id)
 
     return {"message": "Session deleted", "session_id": session_id}
 
@@ -594,7 +613,7 @@ async def delete_session(
 @router.post("/{session_id}/pause")
 async def pause_session(
     session_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Pause a session (save to Neo4j without ending)."""
     state = get_session(session_id)
@@ -610,39 +629,46 @@ async def pause_session(
             detail="This is not your session"
         )
 
-    # Save to Neo4j with paused status
+    # Once security checks pass, ensure cleanup happens no matter what
     try:
-        from storm_logos.data.user_graph import SessionRecord
+        # Save to Neo4j with paused status (optional - don't fail if this errors)
+        try:
+            from storm_logos.data.user_graph import SessionRecord
 
-        # Convert symbols to the right format
-        symbols_list = [s.get("text", "") if isinstance(s, dict) else s for s in state.symbols]
+            # Convert symbols to the right format
+            symbols_list = [s.get("text", "") if isinstance(s, dict) else s for s in state.symbols]
 
-        record = SessionRecord(
-            session_id=session_id,
-            user_id=state.user_id,
-            mode=state.mode,
-            timestamp=state.started_at,
-            dream_text=state.dream_text,
-            archetypes=[],
-            symbols=symbols_list,
-            emotions=list(set(state.emotions)),
-            themes=list(set(state.themes)),
-            history=state.history,
-            summary=f"{state.turn} turns (paused), A={state.A:+.2f}, S={state.S:+.2f}",
-            status="paused",
-        )
+            record = SessionRecord(
+                session_id=session_id,
+                user_id=state.user_id,
+                mode=state.mode,
+                timestamp=state.started_at,
+                dream_text=state.dream_text,
+                archetypes=[],
+                symbols=symbols_list,
+                emotions=list(set(state.emotions)),
+                themes=list(set(state.themes)),
+                history=state.history,
+                summary=f"{state.turn} turns (paused), A={state.A:+.2f}, S={state.S:+.2f}",
+                status="paused",
+            )
 
-        ug = get_user_graph()
-        ug.save_session(record)
-    except Exception as e:
-        print(f"Warning: Could not save session: {e}")
+            ug = get_user_graph()
+            ug.save_session(record)
+        except Exception as e:
+            import logging
+            logging.warning(f"Could not save session: {e}")
 
-    # Reset therapist
-    therapist = get_therapist()
-    therapist.reset()
+    finally:
+        # ALWAYS clean up session state, even if errors occurred above
+        try:
+            therapist = get_therapist()
+            therapist.reset()
+        except Exception:
+            pass
 
-    # Remove from active sessions
-    remove_session(session_id)
+        # ALWAYS remove from active sessions
+        remove_session(session_id)
 
     return {"message": "Session paused", "session_id": session_id, "turns": state.turn}
 
@@ -650,7 +676,7 @@ async def pause_session(
 @router.post("/{session_id}/resume", response_model=SessionResponse)
 async def resume_session(
     session_id: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Resume a paused session."""
     # Check if already active
