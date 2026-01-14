@@ -1,5 +1,6 @@
 """Token service for email verification and password reset."""
 
+import logging
 import os
 import secrets
 import hashlib
@@ -7,6 +8,8 @@ from datetime import datetime, timedelta
 from typing import Optional, Tuple
 
 import redis
+
+logger = logging.getLogger(__name__)
 
 
 class TokenService:
@@ -61,7 +64,7 @@ class TokenService:
                 user_id
             )
         except redis.RedisError as e:
-            print(f"Error storing email verification token: {e}")
+            logger.error(f"Error storing email verification token: {e}")
 
         return token
 
@@ -84,7 +87,7 @@ class TokenService:
                 self.client.delete(key)
                 return user_id
         except redis.RedisError as e:
-            print(f"Error verifying email token: {e}")
+            logger.error(f"Error verifying email token: {e}")
 
         return None
 
@@ -111,7 +114,7 @@ class TokenService:
             pipe.setex(user_key, timedelta(hours=self.PASSWORD_RESET_HOURS), token_hash)
             pipe.execute()
         except redis.RedisError as e:
-            print(f"Error storing password reset token: {e}")
+            logger.error(f"Error storing password reset token: {e}")
 
         return token
 
@@ -135,7 +138,7 @@ class TokenService:
                 self.client.delete(f"password_reset_user:{user_id}")
                 return user_id
         except redis.RedisError as e:
-            print(f"Error verifying password reset token: {e}")
+            logger.error(f"Error verifying password reset token: {e}")
 
         return None
 

@@ -8,10 +8,13 @@ Now uses the full Storm-Logos theoretical framework:
 """
 
 import json
+import logging
 from datetime import datetime
 from typing import Optional, Dict, List, Any
 from dataclasses import dataclass, field
 from fastapi import APIRouter, HTTPException, status, Depends
+
+from storm_logos.data.user_graph import SessionRecord, ArchetypeManifestation as AM
 
 from ..models import (
     SessionStart, SessionMessage, SessionResponse, SessionEnd,
@@ -22,6 +25,8 @@ from ..deps import (
     get_session, store_session, remove_session, get_user_active_session,
     get_therapist
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -465,21 +470,17 @@ async def end_session(
         try:
             archetypes = _extract_archetypes(engine, state)
         except Exception as e:
-            import logging
-            logging.warning(f"Could not extract archetypes: {e}")
+            logger.warning(f"Could not extract archetypes: {e}")
 
         # Get session summary from therapist if available
         try:
             session_data = therapist.get_session_data()
         except Exception as e:
-            import logging
-            logging.warning(f"Could not get session data: {e}")
+            logger.warning(f"Could not get session data: {e}")
 
         # Save to user graph if authenticated (optional - don't fail if this errors)
         if state.user_id:
             try:
-                from storm_logos.data.user_graph import SessionRecord, ArchetypeManifestation as AM
-
                 manifestations = [
                     AM(
                         archetype=a.get("archetype", "unknown"),
@@ -506,8 +507,7 @@ async def end_session(
                 ug = get_user_graph()
                 ug.save_session(record)
             except Exception as e:
-                import logging
-                logging.warning(f"Could not save to user graph: {e}")
+                logger.warning(f"Could not save to user graph: {e}")
 
     finally:
         # ALWAYS clean up session state, even if errors occurred above
@@ -633,8 +633,6 @@ async def pause_session(
     try:
         # Save to Neo4j with paused status (optional - don't fail if this errors)
         try:
-            from storm_logos.data.user_graph import SessionRecord
-
             # Convert symbols to the right format
             symbols_list = [s.get("text", "") if isinstance(s, dict) else s for s in state.symbols]
 
@@ -656,8 +654,7 @@ async def pause_session(
             ug = get_user_graph()
             ug.save_session(record)
         except Exception as e:
-            import logging
-            logging.warning(f"Could not save session: {e}")
+            logger.warning(f"Could not save session: {e}")
 
     finally:
         # ALWAYS clean up session state, even if errors occurred above

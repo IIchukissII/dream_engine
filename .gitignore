@@ -67,6 +67,7 @@ __pycache__/
 sdist/
 .secrets
 secrets/
+CREDENTIALS.md
 # SECURITY - NEVER COMMIT THESE
 # Sessions (may contain sensitive conversation data)
 .settings/

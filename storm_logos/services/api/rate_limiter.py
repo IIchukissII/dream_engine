@@ -8,6 +8,7 @@ Provides different rate limits for different endpoint categories:
 Also implements account lockout after failed login attempts.
 """
 
+import logging
 import os
 import time
 from typing import Optional, Tuple
@@ -15,6 +16,8 @@ from functools import wraps
 
 import redis
 from fastapi import HTTPException, Request, status
+
+logger = logging.getLogger(__name__)
 
 
 # Rate limit configurations: (max_requests, window_seconds)
@@ -106,7 +109,7 @@ class RateLimiter:
 
         except redis.RedisError as e:
             # On Redis error, allow request (fail open)
-            print(f"Rate limiter Redis error: {e}")
+            logger.warning(f"Rate limiter Redis error: {e}")
             return True, {'error': str(e)}
 
     def record_failed_login(self, username: str, request: Request) -> Tuple[bool, int]:
@@ -140,7 +143,7 @@ class RateLimiter:
             return False, remaining
 
         except redis.RedisError as e:
-            print(f"Failed login recording error: {e}")
+            logger.warning(f"Failed login recording error: {e}")
             return False, MAX_LOGIN_ATTEMPTS
 
     def is_locked_out(self, username: str, request: Request) -> Tuple[bool, int]:
@@ -199,7 +202,7 @@ class RateLimiter:
             return True, info
 
         except redis.RedisError as e:
-            print(f"Guest limit Redis error: {e}")
+            logger.warning(f"Guest limit Redis error: {e}")
             return True, {'error': str(e)}
 
     def increment_guest_dream_count(self, request: Request) -> int:
@@ -219,7 +222,7 @@ class RateLimiter:
             # No expiry - permanent limit for guest IP
             return count
         except redis.RedisError as e:
-            print(f"Guest count increment error: {e}")
+            logger.warning(f"Guest count increment error: {e}")
             return 0
 
     def get_guest_dream_count(self, request: Request) -> int:

@@ -7,19 +7,35 @@ Or in Docker:
     docker-compose up api
 """
 
+import logging
 import os
 import sys
 import time
+import traceback
+from datetime import datetime
 from pathlib import Path
 from contextlib import asynccontextmanager
 from collections import defaultdict
 from typing import Any, Dict, Optional
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
+
 from fastapi import FastAPI, Request, HTTPException, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, PlainTextResponse
 
 # Ensure storm_logos is importable
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
+from storm_logos.data.neo4j import get_neo4j
+from storm_logos.data.book_parser import BookParser
+from storm_logos.data.postgres import get_data
+from storm_logos.data.models import Bond
 
 from .deps import load_env, get_user_graph, get_dream_engine, get_semantic_data, get_superuser, get_current_user
 from .routers import auth_router, sessions_router, evolution_router
@@ -72,30 +88,30 @@ def get_cors_origins() -> list:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize services on startup."""
-    print("Starting Storm-Logos API...")
+    logger.info("Starting Storm-Logos API...")
 
     # Initialize services
-    print("  Loading semantic data...")
+    logger.info("Loading semantic data...")
     data = get_semantic_data()
-    print(f"    {data.n_coordinates:,} coordinates")
+    logger.info(f"Loaded {data.n_coordinates:,} coordinates")
 
-    print("  Connecting to Neo4j...")
+    logger.info("Connecting to Neo4j...")
     ug = get_user_graph()
     if ug._connected:
-        print("    Connected")
+        logger.info("Neo4j connected")
     else:
-        print("    Warning: Neo4j not connected")
+        logger.warning("Neo4j not connected")
 
-    print("  Initializing DreamEngine...")
+    logger.info("Initializing DreamEngine...")
     engine = get_dream_engine()
-    print(f"    Model: {engine.model}")
+    logger.info(f"DreamEngine model: {engine.model}")
 
-    print("Storm-Logos API ready!")
+    logger.info("Storm-Logos API ready!")
 
     yield
 
     # Cleanup
-    print("Shutting down...")
+    logger.info("Shutting down...")
 
 
 app = FastAPI(
@@ -217,7 +233,6 @@ async def health_ready():
         all_healthy = False
 
     status_code = 200 if all_healthy else 503
-    from fastapi.responses import JSONResponse
     return JSONResponse(
         status_code=status_code,
         content={
@@ -239,8 +254,6 @@ async def health_live():
 @app.get("/metrics")
 async def metrics():
     """Prometheus-compatible metrics endpoint."""
-    import time
-
     # Collect metrics
     metrics_data = []
 
@@ -287,7 +300,6 @@ async def metrics():
     metrics_data.append(f"# TYPE storm_logos_start_time_seconds gauge")
     metrics_data.append(f"storm_logos_start_time_seconds {time.time()}")
 
-    from fastapi.responses import PlainTextResponse
     return PlainTextResponse(
         content="\n".join(metrics_data) + "\n",
         media_type="text/plain; version=0.0.4"
@@ -309,7 +321,6 @@ async def info():
 async def get_corpus_books():
     """Get list of processed books in corpus."""
     try:
-        from storm_logos.data.neo4j import get_neo4j
         neo4j = get_neo4j()
         if not neo4j.connect():
             return {"books": [], "total": 0, "error": "Neo4j not connected"}
@@ -351,7 +362,6 @@ async def get_corpus_books():
 
         return {"books": detailed_books, "total": len(detailed_books)}
     except Exception as e:
-        import traceback
         return {"books": [], "total": 0, "error": str(e), "trace": traceback.format_exc()}
 
 
@@ -372,10 +382,6 @@ async def process_book_text(
         return {"error": "Text too short (min 100 chars)"}
 
     try:
-        from storm_logos.data.book_parser import BookParser
-        from storm_logos.data.neo4j import get_neo4j
-        from storm_logos.data.postgres import get_data
-
         # Parse text
         parser = BookParser()
         parsed = parser.parse_text(text, title=title, author=author)
@@ -383,7 +389,7 @@ async def process_book_text(
         if not parsed.bonds:
             return {"error": "No bonds extracted from text"}
 
-        # Get coordinates
+        # Get coordinates from postgres
         data_layer = get_data()
         bonds_with_coords = []
         for eb in parsed.bonds:
@@ -392,7 +398,6 @@ async def process_book_text(
             noun_coords = data_layer.get(eb.noun)
 
             if adj_coords and noun_coords:
-                from storm_logos.data.models import Bond
                 bond = Bond(
                     id=bond_id,
                     adj=eb.adj,
@@ -454,7 +459,6 @@ async def process_book_text(
         }
 
     except Exception as e:
-        import traceback
         return {"error": str(e), "trace": traceback.format_exc()}
 
 
@@ -488,7 +492,6 @@ async def get_admin_users(
             }
         }
     except Exception as e:
-        import traceback
         return {"users": [], "summary": {}, "error": str(e), "trace": traceback.format_exc()}
 
 
@@ -498,8 +501,6 @@ async def save_dream(
     current_user: Dict[str, Any] = Depends(get_current_user)
 ):
     """Save a dream analysis to user's collection."""
-    from datetime import datetime
-
     dream_text = data.get("dream", "").strip()
     interpretation = data.get("interpretation", "")
     symbols = data.get("symbols", [])
@@ -550,7 +551,6 @@ async def save_dream(
         }
 
     except Exception as e:
-        import traceback
         return {"error": str(e), "trace": traceback.format_exc()}
 
 
@@ -589,7 +589,6 @@ async def list_dreams(
         return {"dreams": dreams, "total": len(dreams)}
 
     except Exception as e:
-        import traceback
         return {"dreams": [], "total": 0, "error": str(e)}
 
 

@@ -1,7 +1,10 @@
 """Auth Router: User registration, authentication, and account management."""
 
+import logging
 import os
 from fastapi import APIRouter, HTTPException, status, Depends, Request
+
+logger = logging.getLogger(__name__)
 
 from ..models import (
     UserCreate, UserLogin, UserResponse, TokenResponse,
@@ -88,7 +91,7 @@ async def register(data: UserCreate, request: Request):
             base_url=BASE_URL
         )
     except Exception as e:
-        print(f"Failed to send verification email: {e}")
+        logger.warning(f"Failed to send verification email: {e}")
         # Don't fail registration if email fails
 
     # Create token
