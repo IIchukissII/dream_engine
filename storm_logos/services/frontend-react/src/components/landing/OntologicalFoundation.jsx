@@ -9,22 +9,212 @@ export default function OntologicalFoundation({ expandedCards, onToggle }) {
             Ontological Foundation
           </h2>
           <p className="section-header__subtitle">
-            Ancient philosophy meets mathematical precision. The structure of meaning
-            is not invented - it is discovered.
+            What is the nature of meaning itself? Before we can navigate semantic space,
+            we must understand what space we are navigating - and why it exists at all.
           </p>
         </header>
 
+        {/* Opening Quote */}
+        <div style={{
+          textAlign: 'center',
+          margin: '2rem auto',
+          maxWidth: '700px',
+          padding: '2rem',
+          background: 'rgba(0,0,0,0.2)',
+          borderRadius: '16px'
+        }}>
+          <p style={{
+            fontSize: '1.2rem',
+            fontStyle: 'italic',
+            color: 'var(--accent)',
+            marginBottom: '1rem',
+            letterSpacing: '0.05em'
+          }}>
+            "&#7960;&#957; &#7936;&#961;&#967;&#8135; &#7974;&#957; &#8001; &#923;&#972;&#947;&#959;&#962;, &#954;&#945;&#8054; &#8001; &#923;&#972;&#947;&#959;&#962; &#7974;&#957; &#960;&#961;&#8056;&#962; &#964;&#8056;&#957; &#920;&#949;&#972;&#957;, &#954;&#945;&#8054; &#920;&#949;&#8056;&#962; &#7974;&#957; &#8001; &#923;&#972;&#947;&#959;&#962;."
+          </p>
+          <p style={{ color: 'var(--text)', marginBottom: '0.5rem' }}>
+            "In the beginning was the Word, and the Word was with God, and the Word was God."
+          </p>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+            - John 1:1
+          </p>
+        </div>
+
         <div className="card-grid">
+          {/* Order and Consciousness Card */}
+          <ExpandableCard
+            id="order"
+            icon="&#9673;"
+            title="Order and Consciousness"
+            summary="Order does not precede consciousness as experienced order. It emerges in the act of differentiation. Chaos is reality without consciousness."
+            isExpanded={expandedCards['order']}
+            onToggle={onToggle}
+          >
+            <h4>The Emergence of Structure</h4>
+            <p>
+              Order does not precede consciousness as <em>experienced</em> order. It emerges
+              in the act of differentiation.
+            </p>
+            <p>
+              <strong>Chaos</strong> is reality without consciousness. <strong>Order</strong> is
+              reality as seen by consciousness.
+            </p>
+            <p>
+              Reality as such is not obliged to be either ordered or chaotic. These categories
+              appear only where a consciousness exists that can isolate differences, hold them
+              across time, and connect them into stable relationships.
+            </p>
+
+            <h4>The Three Operations of Consciousness</h4>
+            <p>
+              Without consciousness, there are processes, fluctuations, and interactions. But
+              there is no form as form, no law as law, no structure as structure. Not because
+              nothing exists, but because existence without meaning is not yet structure.
+            </p>
+            <p>Consciousness performs three fundamental operations:</p>
+            <ul>
+              <li>
+                <strong>Framing:</strong> It cuts something out of continuity. An object is a
+                stillness of attention.
+              </li>
+              <li>
+                <strong>Hierarchizing:</strong> It decides what is foreground and background,
+                cause and effect, relevant and noise. Without hierarchy, everything would be
+                equivalent and experience would dissolve into pure entropy.
+              </li>
+              <li>
+                <strong>Connecting:</strong> It transforms sequence into history, correlation
+                into law, repetition into structure.
+              </li>
+            </ul>
+            <p>
+              In this way, order emerges not as a property of the world in itself, but as a
+              stable form of meaning.
+            </p>
+          </ExpandableCard>
+
+          {/* Explosion → Logos → Meaning Card */}
+          <ExpandableCard
+            id="explosion-logos"
+            icon="&#10038;"
+            title="Explosion, Logos, Meaning"
+            summary="From the storm of possibilities, Logos selects. What fits together persists. Understanding is recognition - knowledge is Anamnesis."
+            isExpanded={expandedCards['explosion-logos']}
+            onToggle={onToggle}
+          >
+            <h4>The Movement of Understanding</h4>
+            <p>
+              This process can be understood as a movement from <strong>Explosion</strong> through
+              <strong> Logos</strong> to <strong>Meaning</strong>.
+            </p>
+
+            <div style={{ margin: '1.5rem 0' }}>
+              <p><strong>Explosion</strong> creates a field of possibilities - a storm through
+              semantic space where many interpretations are excited simultaneously.</p>
+              <p><strong>Logos</strong> acts as a meaning-lens: coherence, intentionality, and
+              stability select. What fits together persists; what does not is filtered out.</p>
+              <p><strong>Meaning</strong> is thereby not invented, but <em>recognized</em>.</p>
+            </div>
+
+            <h4>Knowledge as Anamnesis</h4>
+            <p>
+              Understanding is not adding something new, but <em>re-cognizing</em> what was
+              already implicitly there. In this sense, knowledge is <strong>Anamnesis</strong>:
+              not learning as accumulation, but insight as remembrance.
+            </p>
+
+            <blockquote style={{
+              borderLeft: '3px solid var(--accent)',
+              paddingLeft: '1rem',
+              margin: '1.5rem 0',
+              fontStyle: 'italic',
+              color: 'var(--text)'
+            }}>
+              Truth is the un-forgotten.
+            </blockquote>
+
+            <pre><code style={{ color: 'var(--accent)' }}>{`ἀ (not) + λήθη (forgetting) = ἀλήθεια (truth)`}</code></pre>
+
+            <p style={{ marginTop: '1rem' }}>
+              The Greek word for truth, <em>aletheia</em>, literally means "unconcealment" or
+              "unforgetting." Truth is not constructed but uncovered - the lifting of a veil
+              from what already is.
+            </p>
+          </ExpandableCard>
+
+          {/* Einstein-Bohr and Observation Card */}
+          <ExpandableCard
+            id="einstein-bohr"
+            icon="&#8486;"
+            title="Observation and Reality"
+            summary="The Einstein-Bohr debate illuminates our approach. Consciousness does not create reality - it selects stable trajectories from a field of possibilities."
+            isExpanded={expandedCards['einstein-bohr']}
+            onToggle={onToggle}
+          >
+            <h4>The Great Debate</h4>
+            <p>
+              This view touches the famous debate between Albert Einstein and Niels Bohr.
+            </p>
+            <p>
+              <strong>Einstein</strong> held that reality must possess certain properties
+              independent of observation. The world, he believed, is ordered even when no
+              one is looking.
+            </p>
+            <p>
+              <strong>Bohr</strong> countered that physical properties can only be meaningfully
+              defined in the context of measurement and description. Physics does not describe
+              reality in itself, but what appears as phenomenon under certain conditions.
+            </p>
+
+            <h4>Selection, Not Creation</h4>
+            <p>
+              Bohr's position does not mean that consciousness creates particles. It means
+              that without an act of differentiation, no determinate properties are formulable.
+              Possibilities are not created from nothing, but are transformed into distinguishable
+              states.
+            </p>
+            <p>
+              In this sense, consciousness relates to reality similarly to observation in
+              quantum physics: <strong>it does not create, but selects</strong> stable
+              trajectories from a field of possibilities.
+            </p>
+
+            <blockquote style={{
+              borderLeft: '3px solid var(--accent)',
+              paddingLeft: '1rem',
+              margin: '1.5rem 0',
+              fontStyle: 'italic',
+              color: 'var(--text)'
+            }}>
+              Consciousness does not invent order - it recognizes it. Just as seeing does not
+              create light but makes it visible, so consciousness does not create reality but
+              makes it meaningful.
+            </blockquote>
+
+            <p>
+              If the principle of meaning ceases to be recognizable, reality does not "fall
+              into chaos" - it returns to a pre-differentiated state in which differences
+              have not yet been drawn, until a new act of differentiation arises.
+            </p>
+          </ExpandableCard>
+
           {/* Logos Card - John 1:1 */}
           <ExpandableCard
             id="logos"
             icon="&#937;"
-            title="In the Beginning Was the Word"
-            summary="John 1:1 speaks of Logos - the ordering principle of reality. Our &tau;&#8320; represents this source dimension from which all meaning emanates."
+            title="The Johannine Logos"
+            summary="The Logos is not merely a 'word' but the rational principle through which all things came to be. Our &tau;&#8320; represents this source dimension - the ground of all meaning."
             isExpanded={expandedCards['logos']}
             onToggle={onToggle}
           >
-            <h4>The Johannine Prologue</h4>
+            <h4>Before Christianity</h4>
+            <p>
+              The Greek term <em>Logos</em> carried immense philosophical weight before Christianity
+              appropriated it. For John, the Logos was not merely spoken language but the divine
+              rationality that orders the cosmos - the principle of intelligibility itself.
+            </p>
+
+            <h4>Heraclitus: The Logos That Holds Always</h4>
             <blockquote style={{
               borderLeft: '3px solid var(--accent)',
               paddingLeft: '1rem',
@@ -32,40 +222,96 @@ export default function OntologicalFoundation({ expandedCards, onToggle }) {
               fontStyle: 'italic',
               color: 'var(--text)'
             }}>
-              "In the beginning was the Word (Logos), and the Word was with God,
-              and the Word was God. Through him all things were made."
-              <br /><span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>- John 1:1-3</span>
+              "This Logos holds always, but humans always prove unable to understand it,
+              both before hearing it and when they have first heard it. For though all things
+              come to be in accordance with this Logos, humans are like the inexperienced."
+              <br /><span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>- Heraclitus, Fragment B1</span>
             </blockquote>
 
-            <h4>&tau;&#8320;: The Source Dimension</h4>
             <p>
-              In our framework, &tau;&#8320; represents Logos - the ground of all semantic
-              reality. It is the theoretical point from which the entire 16D space unfolds:
+              Five centuries before John, Heraclitus spoke of a universal Logos governing
+              all change and opposition. Fire transforms to water transforms to earth - yet
+              the <em>measure</em> (metron) of transformation remains constant. The Logos is
+              that constancy, that pattern, that rationality underlying apparent chaos.
+            </p>
+
+            <h4>&tau;&#8320;: The Mathematical Logos</h4>
+            <p>
+              In our framework, &tau;&#8320; (tau-zero) represents the Logos computationally.
+              It is the theoretical source dimension from which the entire 16-dimensional
+              semantic space unfolds:
             </p>
             <ul>
               <li>The 16D space is a <em>projection</em> of &tau;&#8320; into manifestation</li>
-              <li>Real understanding means approaching &tau;&#8320;</li>
-              <li>Surface meanings are further from the source</li>
-              <li>Dreams often reveal glimpses of deeper &tau; levels</li>
+              <li>Higher &tau; values indicate surface meanings - further from source</li>
+              <li>Lower &tau; values approach the archetypal, the universal, the Logos itself</li>
+              <li>Dreams naturally operate at lower &tau; levels - closer to the source</li>
             </ul>
 
-            <h4>Heraclitus and the Stoics</h4>
+            <p style={{ marginTop: '1rem' }}>
+              We do not claim to have <em>captured</em> Logos. Rather, we have constructed
+              a mathematical space in which the <em>direction toward Logos</em> can be
+              meaningfully computed. The journey matters more than the destination.
+            </p>
+          </ExpandableCard>
+
+          {/* Faith and Method Card */}
+          <ExpandableCard
+            id="faith"
+            icon="&#10013;"
+            title="A Note on Faith"
+            summary="This work does not claim access to absolute truth through clever argument. The key is faith - not belief without evidence, but willingness to act toward the good before proof arrives."
+            isExpanded={expandedCards['faith']}
+            onToggle={onToggle}
+          >
+            <h4>On Resistance</h4>
             <p>
-              Before John, the Greek philosophers spoke of Logos as the rational principle
-              governing the cosmos. Heraclitus: "This Logos holds always, but humans always
-              prove unable to understand it." Our 16D space is an attempt to make Logos computable.
+              I understand that this perspective will meet resistance. In our era of
+              constructivism and postmodernism, it has become difficult to speak of reality
+              at all - everything dissolves into interpretation, perspective, power relations.
+              The very concept of truth seems naive or dangerous.
             </p>
 
-            <h4>The Eternal Structure</h4>
-            <pre><code>{`&tau;&#8320; = constant (Logos, truth)
-16D = constant (structure, space)
-Weights = change (experience, growth)
+            <h4>The Nature of Faith</h4>
+            <p>
+              But this work does not claim access to absolute truth through clever argument.
+              The key to this work is <strong>faith</strong>.
+            </p>
+            <p>
+              Not faith as belief without evidence, but faith as the willingness to act
+              toward the good before proof arrives.
+            </p>
 
-Sleep doesn't change truth.
-Sleep changes my understanding of truth.
+            <blockquote style={{
+              borderLeft: '3px solid var(--accent)',
+              paddingLeft: '1rem',
+              margin: '1.5rem 0',
+              fontStyle: 'italic',
+              color: 'var(--text)'
+            }}>
+              Only lived faith becomes knowledge.
+              <br /><br />
+              Experience is the path of faith. Faith is the fruit of experience.
+              The circle closes - but only for those who walk it.
+            </blockquote>
 
-The structure is eternal.
-I grow within it.`}</code></pre>
+            <h4>What We Are Building</h4>
+            <p>
+              This is not a claim to have discovered profound truth. It is a <em>path</em> -
+              an attempt to build tools that help consciousness perform its differentiation
+              work more clearly:
+            </p>
+            <ul>
+              <li>A semantic space where words have <em>positions</em>, not just associations</li>
+              <li>A physics of meaning where concepts have gravity, temperature, coherence</li>
+              <li>Navigation algorithms that move toward <em>good</em>, not just toward probable</li>
+              <li>Intent-driven collapse where verbs act as operators that focus exploration</li>
+            </ul>
+            <p style={{ marginTop: '1rem' }}>
+              The question is not whether this is "true" in some absolute sense. The question
+              is whether these tools help us <strong>see more clearly</strong>, <strong>navigate
+              more wisely</strong>, and <strong>understand more deeply</strong>.
+            </p>
           </ExpandableCard>
 
           {/* Thomistic Transcendentals Card */}
@@ -73,138 +319,60 @@ I grow within it.`}</code></pre>
             id="transcendentals"
             icon="&#8853;"
             title="The Thomistic Transcendentals"
-            summary="Five properties that transcend all categories of being - recovered through mathematical analysis of 27 foundational texts."
+            summary="Being qua being has properties that transcend all categories. Thomas Aquinas identified these transcendentals - and remarkably, they emerge from our corpus analysis."
             isExpanded={expandedCards['transcendentals']}
             onToggle={onToggle}
           >
-            <h4>Medieval Philosophy Meets Data Science</h4>
+            <h4>The Problem of Categories</h4>
             <p>
-              Thomas Aquinas identified transcendental properties of being - qualities
-              that apply to everything that exists. Our j-space dimensions emerged from
-              analyzing Jung, Freud, Homer, Dostoevsky, and mythological texts:
+              Aristotle divided being into ten categories: substance, quantity, quality,
+              relation, place, time, position, state, action, passion. But what properties
+              belong to <em>being as such</em>, prior to any categorical division?
             </p>
 
-            <h4>The Five Transcendentals</h4>
+            <blockquote style={{
+              borderLeft: '3px solid var(--accent)',
+              paddingLeft: '1rem',
+              margin: '1rem 0',
+              fontStyle: 'italic',
+              color: 'var(--text)'
+            }}>
+              "Being and one are convertible... Similarly, being and good are convertible...
+              Being and true are also convertible."
+              <br /><span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>- Thomas Aquinas, De Veritate</span>
+            </blockquote>
+
+            <h4>The Classical List</h4>
+            <p>
+              Medieval philosophy identified the <em>transcendentia</em> - properties coextensive
+              with being itself:
+            </p>
             <ul>
-              <li>
-                <strong>Unum (Unity/Sacred):</strong> Coherence, wholeness, the integration
-                of parts into meaningful wholes. Dreams seek unity of the psyche.
-              </li>
-              <li>
-                <strong>Verum (Truth):</strong> Alignment with reality, authenticity.
-                In i-space because it varies with context and perspective.
-              </li>
-              <li>
-                <strong>Bonum (Good):</strong> Moral orientation, benefit, excellence.
-                The compass pointing toward flourishing.
-              </li>
-              <li>
-                <strong>Pulchrum (Beauty):</strong> Aesthetic resonance, harmony,
-                proportion. The felt sense of rightness.
-              </li>
-              <li>
-                <strong>Esse (Being/Life):</strong> Existential weight, vitality,
-                presence. The life-force dimension.
-              </li>
+              <li><strong>Unum (One):</strong> Every being is undivided in itself</li>
+              <li><strong>Verum (True):</strong> Every being is intelligible, knowable</li>
+              <li><strong>Bonum (Good):</strong> Every being is desirable insofar as it exists</li>
+              <li><strong>Pulchrum (Beautiful):</strong> Every being pleases when perceived</li>
             </ul>
 
-            <h4>Validation</h4>
+            <h4>Emergence from Data</h4>
             <p>
-              These dimensions were not chosen a priori - they emerged from principal
-              component analysis of semantic vectors across 85,157 bonds from the corpus.
-              Ancient wisdom, mathematically recovered.
+              When we analyzed 27 foundational texts - Homer, Dostoevsky, Jung, Freud,
+              mythological corpora - and extracted principal components from 85,157
+              semantic bonds, five dominant dimensions emerged that closely parallel
+              the transcendentals:
             </p>
-          </ExpandableCard>
-
-          {/* Verbs as Operators Card */}
-          <ExpandableCard
-            id="verbs"
-            icon="&#8658;"
-            title="Verbs as Transition Operators"
-            summary="Nouns are positions in semantic space. Verbs are the operators that transform those positions - the paths through meaning."
-            isExpanded={expandedCards['verbs']}
-            onToggle={onToggle}
-          >
-            <h4>The State + Transition Model</h4>
-            <pre><code>{`Meaning = State (noun: 16D + &tau;) + Transition (verb: 6D)
-        = Position in semantic space + Direction of movement`}</code></pre>
-
-            <h4>How Verbs Work</h4>
-            <p>
-              Each verb is a 6-dimensional operator (5 j-space + truth) that transforms
-              semantic coordinates:
-            </p>
-            <table className="metrics-table">
-              <thead>
-                <tr>
-                  <th>Verb</th>
-                  <th>j-magnitude</th>
-                  <th>Effect</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>love</td>
-                  <td className="metrics-table__value">0.041</td>
-                  <td>Increases love, beauty dimensions</td>
-                </tr>
-                <tr>
-                  <td>destroy</td>
-                  <td className="metrics-table__value">0.029</td>
-                  <td>Decreases life, increases entropy</td>
-                </tr>
-                <tr>
-                  <td>create</td>
-                  <td className="metrics-table__value">0.027</td>
-                  <td>Increases life, sacred dimensions</td>
-                </tr>
-                <tr>
-                  <td>fall</td>
-                  <td className="metrics-table__value">0.035</td>
-                  <td>Descent toward shadow regions</td>
-                </tr>
-              </tbody>
-            </table>
-
-            <h4>Dream Interpretation</h4>
-            <p>
-              When you dream of "falling into darkness," this represents a verb-driven
-              trajectory through semantic space - a descent along specific dimensions
-              toward particular archetypal regions.
-            </p>
-          </ExpandableCard>
-
-          {/* Jungian Archetypes Card */}
-          <ExpandableCard
-            id="archetypes"
-            icon="&#9788;"
-            title="Archetypes as Regions"
-            summary="Jung's 12 archetypes map to distinct regions in j-space. Each has characteristic coordinates that emerge from the corpus analysis."
-            isExpanded={expandedCards['archetypes']}
-            onToggle={onToggle}
-          >
-            <h4>The Archetypal Map</h4>
-            <p>
-              Archetypes are not arbitrary categories but clusters in semantic space
-              with measurable properties:
-            </p>
-
             <ul>
-              <li><strong>Hero:</strong> High good, high life - the path of transformation</li>
-              <li><strong>Shadow:</strong> Low good, high being - the rejected aspects of self</li>
-              <li><strong>Anima/Animus:</strong> High love, high beauty - the inner other</li>
-              <li><strong>Self:</strong> Centered in all dimensions - integration achieved</li>
-              <li><strong>Wise Old Man:</strong> High sacred, low &tau; - archetypal wisdom</li>
-              <li><strong>Great Mother:</strong> High life, high love - nurturing source</li>
-              <li><strong>Trickster:</strong> Low sacred, variable - chaos and change</li>
-              <li><strong>Child:</strong> High life, high &tau; - potential and innocence</li>
+              <li><strong>Beauty/Pulchrum:</strong> Aesthetic resonance, harmony, proportion</li>
+              <li><strong>Life/Esse:</strong> Vitality, presence, existential weight</li>
+              <li><strong>Sacred/Unum:</strong> Unity, wholeness, integration into meaning</li>
+              <li><strong>Good/Bonum:</strong> Moral orientation, benefit, flourishing</li>
+              <li><strong>Love/Caritas:</strong> Connection, communion, relational being</li>
             </ul>
 
-            <h4>Detection Algorithm</h4>
-            <p>
-              When you describe a dream, we extract symbols, compute their semantic
-              coordinates, and measure proximity to archetypal centroids. The dominant
-              archetype(s) reveal the psychological themes at play.
+            <p style={{ marginTop: '1rem' }}>
+              This convergence between medieval metaphysics and computational semantics
+              suggests that the transcendentals are not arbitrary philosophical constructs
+              but genuine features of the structure of meaning itself.
             </p>
           </ExpandableCard>
         </div>

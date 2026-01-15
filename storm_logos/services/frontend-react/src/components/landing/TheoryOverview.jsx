@@ -34,41 +34,135 @@ export default function TheoryOverview({ expandedCards, onToggle }) {
         </div>
 
         <div className="card-grid">
-          {/* Saturation Mechanics Card */}
+          {/* Saturation Dynamics Card */}
           <ExpandableCard
             id="saturation"
             icon="~"
-            title="Saturation Mechanics"
-            summary="Every word carries a semantic charge that saturates meaning. Like a capacitor charging, concepts accumulate semantic energy until they reach equilibrium."
+            title="Saturation Dynamics"
+            summary="Bond Space fills like a physical system. PT1 dynamics govern how meaning saturates - explaining why exactly five abstraction levels exist."
             isExpanded={expandedCards['saturation']}
             onToggle={onToggle}
           >
-            <h4>The RC-Model of Meaning</h4>
+            <h4>The Physical Analogy</h4>
             <p>
-              Semantic saturation follows an RC-circuit model: each word acts as a capacitor
-              that charges with meaning from context. The saturation level determines how
-              strongly a concept influences its neighbors.
+              When we combine adjectives with nouns ("fierce gods", "old house", "beautiful morning"),
+              we create <em>bonds</em>. These bonds are not random. Some nouns accept thousands of
+              adjectives ("man" can be good, bad, old, young, tall, invisible...), while others
+              accept only a handful.
             </p>
 
-            <h4>Key Principles</h4>
-            <ul>
-              <li><strong>Charge:</strong> Words accumulate semantic weight from surrounding context</li>
-              <li><strong>Discharge:</strong> Meaning dissipates over textual distance</li>
-              <li><strong>Equilibrium:</strong> The system finds balance at characteristic time constants</li>
-              <li><strong>Resonance:</strong> Similar concepts amplify each other's charge</li>
-            </ul>
+            <h4>PT1 Dynamics: The Charging Capacitor</h4>
+            <p>
+              In first-order lag (PT1) systems, a quantity approaches its maximum exponentially:
+            </p>
+            <pre><code>{`y(t) = y_max · (1 - e^(-t/τ))
 
-            <h4>Mathematical Formulation</h4>
-            <pre><code>{`dS/dt = -S/RC + Input(t)
-
-Where:
-  S = Semantic saturation level
-  RC = Characteristic time constant
-  Input(t) = Contextual semantic input`}</code></pre>
+At time t = τ:   63% saturation
+At time t = 5τ:  99.3% saturation`}</code></pre>
 
             <p>
-              This explains why repeated themes in dreams intensify their meaning,
-              and why distant symbols can still resonate through semantic fields.
+              Bond Space follows identical dynamics. As nouns accumulate, they fill the semantic space.
+              Early nouns ("man", "woman", "thing") capture broad categories. Later nouns fill
+              increasingly specific niches.
+            </p>
+
+            <h4>Empirical Validation</h4>
+            <table className="metrics-table">
+              <thead>
+                <tr>
+                  <th>Parameter</th>
+                  <th>Value</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Asymptote (bonds/noun)</td>
+                  <td className="metrics-table__value">40.5</td>
+                </tr>
+                <tr>
+                  <td>Time constant (&tau;)</td>
+                  <td className="metrics-table__value">42,921 nouns</td>
+                </tr>
+                <tr>
+                  <td>Fit quality (R&sup2;)</td>
+                  <td className="metrics-table__value">0.9919</td>
+                </tr>
+                <tr>
+                  <td>Current progress</td>
+                  <td className="metrics-table__value">96.2%</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Why Five Levels?</h4>
+            <p>
+              The number five is not arbitrary. In PT1 systems, each time constant fills 63% of
+              the remaining capacity. After five time constants, the system reaches 99.3% - effectively
+              complete. Five abstraction levels is the natural depth of a saturating semantic space.
+            </p>
+          </ExpandableCard>
+
+          {/* The τ Structure Card */}
+          <ExpandableCard
+            id="tau-structure"
+            icon="&#964;"
+            title="The &tau; Structure"
+            summary="Adjective variety partitions into discrete abstraction levels. From the apex 'man' to highly specific terms - the hierarchy of meaning."
+            isExpanded={expandedCards['tau-structure']}
+            onToggle={onToggle}
+          >
+            <h4>Measuring Abstraction</h4>
+            <p>
+              For each noun, we count its <em>variety</em> - how many unique adjectives modify it.
+              This quantity encodes semantic abstraction. Abstract nouns like "thing" lack physical
+              constraints, permitting almost any modifier. Concrete nouns like "battleship" have
+              fixed properties, limiting their descriptive range.
+            </p>
+
+            <h4>The Five Levels</h4>
+            <table className="metrics-table">
+              <thead>
+                <tr>
+                  <th>Level</th>
+                  <th>Variety</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>&tau;&#8321;</td>
+                  <td className="metrics-table__value">5000+</td>
+                  <td>Apex ("man")</td>
+                </tr>
+                <tr>
+                  <td>&tau;&#8322;</td>
+                  <td className="metrics-table__value">1000-5000</td>
+                  <td>Categories ("thing", "way", "time")</td>
+                </tr>
+                <tr>
+                  <td>&tau;&#8323;</td>
+                  <td className="metrics-table__value">100-1000</td>
+                  <td>Concepts ("fish", "wood")</td>
+                </tr>
+                <tr>
+                  <td>&tau;&#8324;</td>
+                  <td className="metrics-table__value">10-100</td>
+                  <td>Specifics ("battleship")</td>
+                </tr>
+                <tr>
+                  <td>&tau;&#8325;</td>
+                  <td className="metrics-table__value">2-10</td>
+                  <td>Low variety terms</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h4>Connection to Dreams</h4>
+            <p>
+              Dream symbols operate at lower &tau; levels - more abstract, more universal. When you
+              dream of "falling," you're not at &tau;&#8325; (a specific fall) but at &tau;&#8322; or &tau;&#8321;
+              (the archetypal Fall, the descent of consciousness). Understanding your &tau; level
+              reveals the depth of meaning at play.
             </p>
           </ExpandableCard>
 
