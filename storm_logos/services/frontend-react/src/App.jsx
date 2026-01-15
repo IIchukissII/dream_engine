@@ -33,6 +33,7 @@ export default function App() {
   // Handler to exit landing page and enter the app
   function handleEnterApp() {
     setShowLanding(false)
+    api.trackPageView('app')
   }
 
   // Handler to show landing page again (for Theory link)

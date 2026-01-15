@@ -120,3 +120,12 @@ export const deleteDream = (dreamId) => api(`/dreams/${dreamId}`, 'DELETE');
 
 // Admin
 export const getAdminUsers = () => api('/admin/users');
+
+// Analytics - track page views (fire and forget)
+export function trackPageView(page) {
+  fetch(`${API_BASE}/track`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page }),
+  }).catch(() => {}); // Silent fail
+}

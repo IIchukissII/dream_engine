@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { trackPageView } from '../../api'
 import HeroSection from './HeroSection'
 import TheoryOverview from './TheoryOverview'
 import OntologicalFoundation from './OntologicalFoundation'
@@ -29,6 +30,11 @@ export default function LandingPage({ onEnterApp }) {
   const scrollToTheory = () => {
     scrollToSection(1)
   }
+
+  // Track landing page view on mount
+  useEffect(() => {
+    trackPageView('landing')
+  }, [])
 
   // Intersection Observer for active section tracking
   useEffect(() => {

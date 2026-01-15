@@ -78,6 +78,45 @@ class RateLimiter:
 rate_limiter = RateLimiter(requests_per_minute=60)
 
 
+# =============================================================================
+# VISIT TRACKING
+# =============================================================================
+class VisitTracker:
+    """Track page views and unique visitors for analytics."""
+
+    def __init__(self):
+        self.page_views = defaultdict(int)  # page -> count
+        self.unique_visitors = set()  # set of visitor IDs (IP hashes)
+        self.dream_sessions = 0
+        self.dream_analyses = 0
+        self.daily_views = defaultdict(lambda: defaultdict(int))  # date -> page -> count
+
+    def track_view(self, page: str, visitor_id: str):
+        """Track a page view."""
+        self.page_views[page] += 1
+        self.unique_visitors.add(visitor_id)
+        today = datetime.now().strftime("%Y-%m-%d")
+        self.daily_views[today][page] += 1
+
+    def track_session(self):
+        """Track a dream session created."""
+        self.dream_sessions += 1
+
+    def track_analysis(self):
+        """Track a dream analysis performed."""
+        self.dream_analyses += 1
+
+    def get_total_views(self) -> int:
+        return sum(self.page_views.values())
+
+    def get_unique_count(self) -> int:
+        return len(self.unique_visitors)
+
+
+# Initialize visit tracker
+visit_tracker = VisitTracker()
+
+
 def get_cors_origins() -> list:
     """Get CORS origins from environment variable."""
     origins_str = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
@@ -249,6 +288,27 @@ async def health_live():
 
 
 # =============================================================================
+# VISIT TRACKING ENDPOINT
+# =============================================================================
+@app.post("/track")
+async def track_visit(request: Request):
+    """Track page view for analytics."""
+    try:
+        body = await request.json()
+        page = body.get("page", "unknown")
+
+        # Create visitor ID from IP (hashed for privacy)
+        client_ip = request.client.host if request.client else "unknown"
+        import hashlib
+        visitor_id = hashlib.sha256(client_ip.encode()).hexdigest()[:16]
+
+        visit_tracker.track_view(page, visitor_id)
+        return {"status": "ok"}
+    except Exception:
+        return {"status": "ok"}  # Silent fail for analytics
+
+
+# =============================================================================
 # METRICS ENDPOINT
 # =============================================================================
 @app.get("/metrics")
@@ -256,6 +316,30 @@ async def metrics():
     """Prometheus-compatible metrics endpoint."""
     # Collect metrics
     metrics_data = []
+
+    # Visit metrics
+    metrics_data.append(f"# HELP storm_logos_page_views_total Total page views")
+    metrics_data.append(f"# TYPE storm_logos_page_views_total counter")
+    metrics_data.append(f"storm_logos_page_views_total {visit_tracker.get_total_views()}")
+
+    metrics_data.append(f"# HELP storm_logos_unique_visitors_total Total unique visitors")
+    metrics_data.append(f"# TYPE storm_logos_unique_visitors_total gauge")
+    metrics_data.append(f"storm_logos_unique_visitors_total {visit_tracker.get_unique_count()}")
+
+    # Page-specific views
+    metrics_data.append(f"# HELP storm_logos_page_views Page views by page")
+    metrics_data.append(f"# TYPE storm_logos_page_views counter")
+    for page, count in visit_tracker.page_views.items():
+        metrics_data.append(f'storm_logos_page_views{{page="{page}"}} {count}')
+
+    # Dream metrics
+    metrics_data.append(f"# HELP storm_logos_dream_sessions_total Total dream sessions created")
+    metrics_data.append(f"# TYPE storm_logos_dream_sessions_total counter")
+    metrics_data.append(f"storm_logos_dream_sessions_total {visit_tracker.dream_sessions}")
+
+    metrics_data.append(f"# HELP storm_logos_dream_analyses_total Total dream analyses performed")
+    metrics_data.append(f"# TYPE storm_logos_dream_analyses_total counter")
+    metrics_data.append(f"storm_logos_dream_analyses_total {visit_tracker.dream_analyses}")
 
     # Request metrics from rate limiter
     total_tracked_ips = len(rate_limiter.requests)
