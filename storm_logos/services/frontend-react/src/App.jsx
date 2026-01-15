@@ -13,10 +13,8 @@ import DreamTab from './components/DreamTab'
 import AdminDashboard from './components/AdminDashboard'
 
 export default function App() {
-  // Landing page state - show for first-time visitors
-  const [showLanding, setShowLanding] = useState(() => {
-    return localStorage.getItem('storm-logos-visited') !== 'true'
-  })
+  // Landing page state - always show on initial visit
+  const [showLanding, setShowLanding] = useState(true)
 
   const [activeTab, setActiveTab] = useState('chat')
   const [user, setUser] = useState(api.getUser())
@@ -35,7 +33,6 @@ export default function App() {
   // Handler to exit landing page and enter the app
   function handleEnterApp() {
     setShowLanding(false)
-    localStorage.setItem('storm-logos-visited', 'true')
   }
 
   // Handler to show landing page again (for Theory link)

@@ -15,12 +15,12 @@ export default function InteractiveDemo({ onEnterApp }) {
 
         <div className="cta-section__secondary">
           <a
-            href="https://github.com/anthropics/claude-code"
+            href="https://github.com/IIchukissII/dream_engine"
             target="_blank"
             rel="noopener noreferrer"
             className="cta-section__link"
           >
-            View Documentation
+            View Source
           </a>
           <span className="cta-section__link" style={{ cursor: 'default', color: 'var(--glass-border)' }}>|</span>
           <a
