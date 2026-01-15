@@ -94,11 +94,87 @@ jobs:
             GIT_SHA=${{ github.sha }}
             VERSION=${{ github.ref_name }}
 
-  # Deployment summary
-  notify:
+  # Trigger ArgoCD sync
+  trigger-argocd:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Trigger ArgoCD Sync
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+          ARGOCD_APP: ${{ secrets.ARGOCD_APP_NAME }}
+        run: |
+          # Skip if secrets not configured
+          if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_TOKEN" ]; then
+            echo "ArgoCD secrets not configured, skipping sync trigger"
+            echo "Configure ARGOCD_SERVER, ARGOCD_TOKEN, and ARGOCD_APP_NAME secrets to enable"
+            exit 0
+          fi
+
+          APP_NAME="${ARGOCD_APP:-storm-logos}"
+
+          echo "Triggering ArgoCD sync for app: $APP_NAME"
+
+          # Trigger sync via ArgoCD API
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            "https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}/sync" \
+            -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"prune": false}' \
+            --insecure)
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+            echo "ArgoCD sync triggered successfully"
+            echo "$BODY" | jq . 2>/dev/null || echo "$BODY"
+          else
+            echo "Failed to trigger ArgoCD sync (HTTP $HTTP_CODE)"
+            echo "$BODY"
+            # Don't fail the workflow, just warn
+            echo "::warning::ArgoCD sync trigger failed, manual sync may be required"
+          fi
+
+      - name: Wait for sync and check status
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+          ARGOCD_APP: ${{ secrets.ARGOCD_APP_NAME }}
+        run: |
+          if [ -z "$ARGOCD_SERVER" ] || [ -z "$ARGOCD_TOKEN" ]; then
+            exit 0
+          fi
+
+          APP_NAME="${ARGOCD_APP:-storm-logos}"
+
+          echo "Waiting for sync to complete..."
+          sleep 30
+
+          # Check application status
+          RESPONSE=$(curl -s \
+            "https://${ARGOCD_SERVER}/api/v1/applications/${APP_NAME}" \
+            -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
+            --insecure)
+
+          SYNC_STATUS=$(echo "$RESPONSE" | jq -r '.status.sync.status // "Unknown"')
+          HEALTH_STATUS=$(echo "$RESPONSE" | jq -r '.status.health.status // "Unknown"')
+
+          echo "Sync Status: $SYNC_STATUS"
+          echo "Health Status: $HEALTH_STATUS"
+
+          echo "## ArgoCD Status" >> $GITHUB_STEP_SUMMARY
+          echo "- **Sync:** $SYNC_STATUS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Health:** $HEALTH_STATUS" >> $GITHUB_STEP_SUMMARY
+
+  # Deployment summary
+  notify:
+    needs: [build-and-push, trigger-argocd]
+    runs-on: ubuntu-latest
+    if: always() && github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
 
     steps:
       - name: Deployment Summary
@@ -120,6 +196,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           echo "Images pushed to ghcr.io/${OWNER}/storm-logos-*" >> $GITHUB_STEP_SUMMARY
-          echo "ArgoCD Image Updater will detect and deploy automatically." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "K8s manifests: https://github.com/IIchukissII/dream_engine_k8s" >> $GITHUB_STEP_SUMMARY
