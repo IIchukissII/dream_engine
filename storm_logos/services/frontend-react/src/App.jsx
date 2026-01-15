@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import * as api from './api'
+import { LandingPage } from './components/landing'
 import AuthModal from './components/AuthModal'
 import Header from './components/Header'
 import Sidebar from './components/Sidebar'
@@ -12,6 +13,11 @@ import DreamTab from './components/DreamTab'
 import AdminDashboard from './components/AdminDashboard'
 
 export default function App() {
+  // Landing page state - show for first-time visitors
+  const [showLanding, setShowLanding] = useState(() => {
+    return localStorage.getItem('storm-logos-visited') !== 'true'
+  })
+
   const [activeTab, setActiveTab] = useState('chat')
   const [user, setUser] = useState(api.getUser())
   const [sessionId, setSessionId] = useState(null)
@@ -25,6 +31,17 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+
+  // Handler to exit landing page and enter the app
+  function handleEnterApp() {
+    setShowLanding(false)
+    localStorage.setItem('storm-logos-visited', 'true')
+  }
+
+  // Handler to show landing page again (for Theory link)
+  function handleShowTheory() {
+    setShowLanding(true)
+  }
 
   useEffect(() => {
     loadInfo()
@@ -218,6 +235,11 @@ export default function App() {
     }
   }
 
+  // Show landing page for first-time visitors
+  if (showLanding) {
+    return <LandingPage onEnterApp={handleEnterApp} />
+  }
+
   return (
     <div id="app">
       {showAuth && (
@@ -253,6 +275,7 @@ export default function App() {
         onSettings={() => setShowSettings(true)}
         onLogout={handleLogout}
         onResendVerification={handleResendVerification}
+        onShowTheory={handleShowTheory}
       />
 
       <div className="tabs">

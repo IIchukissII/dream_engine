@@ -1,4 +1,4 @@
-export default function Header({ user, onHistory, onProfile, onSettings, onLogout, onResendVerification }) {
+export default function Header({ user, onHistory, onProfile, onSettings, onLogout, onResendVerification, onShowTheory }) {
   return (
     <>
       {user && user.email && !user.email_verified && (
@@ -16,6 +16,14 @@ export default function Header({ user, onHistory, onProfile, onSettings, onLogou
           <span className="beta-badge">Beta</span>
         </div>
         <div className="header-right">
+          <button
+            className="icon-btn"
+            onClick={onShowTheory}
+            title="Theory & Philosophy"
+            style={{ marginRight: '0.5rem' }}
+          >
+            ?
+          </button>
           <span className="user-info">{user?.display_name || user?.username || 'Guest'}</span>
           {user && (
             <div className="header-buttons">
