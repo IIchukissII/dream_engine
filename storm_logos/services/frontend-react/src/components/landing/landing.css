@@ -757,3 +757,388 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ==================== PROSE SECTION (Continuous Text) ==================== */
+
+.prose-section {
+  min-height: auto;
+  scroll-snap-align: start;
+  padding: 4rem 2rem;
+}
+
+.prose-content {
+  max-width: 800px;
+  margin: 0 auto;
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+
+.prose-content h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 3rem 0 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.prose-content h2:first-of-type {
+  margin-top: 0;
+}
+
+.prose-content h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 2rem 0 1rem;
+}
+
+.prose-content h4 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 1.5rem 0 0.75rem;
+}
+
+.prose-content p {
+  margin-bottom: 1.25rem;
+}
+
+.prose-emphasis {
+  font-size: 1.15rem;
+  text-align: center;
+  padding: 1.5rem;
+  background: rgba(233, 69, 96, 0.1);
+  border-left: 4px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  margin: 2rem 0;
+}
+
+/* Epigraph (opening quote) */
+.prose-epigraph {
+  text-align: center;
+  margin: 0 auto 2rem;
+  padding: 2.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  max-width: 700px;
+}
+
+.prose-epigraph__greek {
+  font-size: 1.3rem;
+  font-style: italic;
+  color: var(--accent);
+  margin-bottom: 1rem;
+  letter-spacing: 0.03em;
+  line-height: 1.6;
+}
+
+.prose-epigraph__translation {
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+.prose-epigraph cite {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-style: normal;
+}
+
+/* Block quotes */
+.prose-quote {
+  border-left: 3px solid var(--accent);
+  padding: 1rem 1.5rem;
+  margin: 2rem 0;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 0 8px 8px 0;
+}
+
+.prose-quote p {
+  font-style: italic;
+  margin-bottom: 0.75rem;
+}
+
+.prose-quote cite {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  font-style: normal;
+  margin-top: 0.5rem;
+}
+
+/* Horizontal divider */
+.prose-divider {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: 3rem 0;
+}
+
+/* Lists */
+.prose-list {
+  margin: 1.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-list li {
+  margin-bottom: 0.75rem;
+  line-height: 1.7;
+}
+
+/* Code/Formula blocks - styled nicely */
+.prose-code {
+  background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.prose-code code {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 1rem;
+  color: var(--accent);
+  line-height: 1.8;
+  white-space: pre;
+}
+
+/* Math formula display */
+.prose-formula {
+  text-align: center;
+  padding: 2rem;
+  margin: 2rem 0;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 16px;
+}
+
+.prose-formula__equation {
+  font-size: 1.4rem;
+  font-family: 'Times New Roman', Georgia, serif;
+  font-style: italic;
+  color: var(--text);
+  margin-bottom: 1rem;
+}
+
+.prose-formula__description {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+/* Tables */
+.prose-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2rem 0;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prose-table th {
+  background: rgba(233, 69, 96, 0.2);
+  padding: 1rem 1.25rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.prose-table td {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  font-size: 1rem;
+}
+
+.prose-table tr:last-child td {
+  border-bottom: none;
+}
+
+.prose-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Spoiler/details sections */
+.prose-spoiler {
+  margin: 2rem 0;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.prose-spoiler summary {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  transition: background 0.2s;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.prose-spoiler summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose-spoiler summary::before {
+  content: '▶';
+  font-size: 0.75rem;
+  color: var(--accent);
+  transition: transform 0.2s;
+}
+
+.prose-spoiler[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.prose-spoiler summary:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.prose-spoiler__content {
+  padding: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.prose-spoiler__content p {
+  margin-bottom: 1rem;
+}
+
+.prose-spoiler__content ul {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.prose-spoiler__content li {
+  margin-bottom: 0.5rem;
+}
+
+/* PT1 Visualization */
+.pt1-figure {
+  margin: 2.5rem 0;
+  padding: 2rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  border: 1px solid var(--glass-border);
+}
+
+.pt1-figure__title {
+  font-size: 1rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.pt1-figure__graph {
+  position: relative;
+  height: 200px;
+  margin: 1rem 0;
+  border-left: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+}
+
+.pt1-figure__curve {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pt1-figure__curve svg {
+  width: 100%;
+  height: 100%;
+}
+
+.pt1-figure__labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.pt1-figure__y-axis {
+  position: absolute;
+  left: -3rem;
+  top: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.pt1-figure__markers {
+  margin-top: 1.5rem;
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.pt1-figure__marker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.pt1-figure__marker-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.pt1-figure__marker-dot--tau {
+  background: var(--accent);
+}
+
+.pt1-figure__marker-dot--5tau {
+  background: #14b8a6;
+}
+
+/* Prose section responsive */
+@media (max-width: 768px) {
+  .prose-content {
+    font-size: 1rem;
+  }
+
+  .prose-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .prose-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .prose-epigraph {
+    padding: 1.5rem;
+  }
+
+  .prose-epigraph__greek {
+    font-size: 1.1rem;
+  }
+
+  .prose-formula__equation {
+    font-size: 1.2rem;
+  }
+
+  .prose-code {
+    padding: 1rem 1.25rem;
+  }
+
+  .prose-code code {
+    font-size: 0.9rem;
+  }
+}

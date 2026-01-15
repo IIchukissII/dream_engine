@@ -17,17 +17,8 @@ const SECTION_NAMES = [
 
 export default function LandingPage({ onEnterApp }) {
   const [activeSection, setActiveSection] = useState(0)
-  const [expandedCards, setExpandedCards] = useState({})
   const containerRef = useRef(null)
   const sectionsRef = useRef([])
-
-  // Toggle expandable card
-  const toggleCard = (cardId) => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [cardId]: !prev[cardId]
-    }))
-  }
 
   // Scroll to specific section
   const scrollToSection = (index) => {
@@ -104,24 +95,15 @@ export default function LandingPage({ onEnterApp }) {
       </div>
 
       <div ref={el => sectionsRef.current[1] = el}>
-        <OntologicalFoundation
-          expandedCards={expandedCards}
-          onToggle={toggleCard}
-        />
+        <OntologicalFoundation />
       </div>
 
       <div ref={el => sectionsRef.current[2] = el}>
-        <TheoryOverview
-          expandedCards={expandedCards}
-          onToggle={toggleCard}
-        />
+        <TheoryOverview />
       </div>
 
       <div ref={el => sectionsRef.current[3] = el}>
-        <HowItWorks
-          expandedCards={expandedCards}
-          onToggle={toggleCard}
-        />
+        <HowItWorks />
       </div>
 
       <div ref={el => sectionsRef.current[4] = el}>
