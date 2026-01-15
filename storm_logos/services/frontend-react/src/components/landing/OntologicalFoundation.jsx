@@ -77,124 +77,119 @@ export default function OntologicalFoundation() {
           <code>ἀ (not) + λήθη (forgetting) = ἀλήθεια (truth)</code>
         </pre>
 
-        <p>
-          At this point, this view touches the famous debate between Albert Einstein and Niels Bohr.
-          Einstein held that reality must possess certain properties independent of observation. The
-          world, he believed, is ordered even when no one is looking. Bohr countered that physical
-          properties can only be meaningfully defined in the context of measurement and description.
-          Physics does not describe reality in itself, but what appears as phenomenon under certain conditions.
-        </p>
+        <hr className="prose-divider" />
 
-        <p>
-          Bohr's position does not mean that consciousness creates particles. It means that without
-          an act of differentiation, no determinate properties are formulable. Possibilities are not
-          created from nothing, but are transformed into distinguishable states. In this sense,
-          consciousness relates to reality similarly to observation in quantum physics: it does not
-          create, but selects stable trajectories from a field of possibilities.
-        </p>
+        <details className="prose-spoiler">
+          <summary>The Quantum Parallel</summary>
+          <div className="prose-spoiler__content">
 
-        <p>
-          Consciousness does not invent order — it recognizes it. Just as seeing does not create
-          light but makes it visible, so consciousness does not create reality but makes it meaningful.
-          If the principle of meaning ceases to be recognizable, reality does not "fall into chaos" —
-          it returns to a pre-differentiated state in which differences have not yet been drawn, until
-          a new act of differentiation arises.
-        </p>
+            <p>
+              At this point, this view touches the famous debate between Albert Einstein and Niels Bohr.
+              Einstein held that reality must possess certain properties independent of observation. The
+              world, he believed, is ordered even when no one is looking. Bohr countered that physical
+              properties can only be meaningfully defined in the context of measurement and description.
+              Physics does not describe reality in itself, but what appears as phenomenon under certain conditions.
+            </p>
 
-        <p className="prose-emphasis">
-          <strong>Reality as order is a function of consciousness.</strong> Without consciousness,
-          only the potential of structures remains, but not structure as such.
-        </p>
+            <p>
+              Bohr's position does not mean that consciousness creates particles. It means that without
+              an act of differentiation, no determinate properties are formulable. Possibilities are not
+              created from nothing, but are transformed into distinguishable states. In this sense,
+              consciousness relates to reality similarly to observation in quantum physics: it does not
+              create, but selects stable trajectories from a field of possibilities.
+            </p>
+
+            <p>
+              Consciousness does not invent order — it recognizes it. Just as seeing does not create
+              light but makes it visible, so consciousness does not create reality but makes it meaningful.
+              If the principle of meaning ceases to be recognizable, reality does not "fall into chaos" —
+              it returns to a pre-differentiated state in which differences have not yet been drawn, until
+              a new act of differentiation arises.
+            </p>
+
+            <p className="prose-emphasis">
+              <strong>Reality as order is a function of consciousness.</strong> Without consciousness,
+              only the potential of structures remains, but not structure as such.
+            </p>
+
+          </div>
+        </details>
 
         <hr className="prose-divider" />
 
-        <h2>A Note on Resistance</h2>
+        <details className="prose-spoiler">
+          <summary>A Note on Resistance</summary>
+          <div className="prose-spoiler__content">
 
-        <p>
-          I understand that this perspective will meet resistance. In our era of constructivism and
-          postmodernism, it has become difficult to speak of reality at all — everything dissolves
-          into interpretation, perspective, power relations. The very concept of truth seems naive
-          or dangerous.
-        </p>
+            <p>
+              I understand that this perspective will meet resistance. In our era of constructivism and
+              postmodernism, it has become difficult to speak of reality at all — everything dissolves
+              into interpretation, perspective, power relations. The very concept of truth seems naive
+              or dangerous.
+            </p>
 
-        <p>
-          But this work does not claim access to absolute truth through clever argument. The key to
-          this work is faith. Not faith as belief without evidence, but faith as the willingness to
-          act toward the good before proof arrives.
-        </p>
+            <p>
+              But this work does not claim access to absolute truth through clever argument. The key to
+              this work is faith. Not faith as belief without evidence, but faith as the willingness to
+              act toward the good before proof arrives.
+            </p>
 
-        <p className="prose-emphasis">
-          <strong>Only lived faith becomes knowledge.</strong>
-        </p>
+            <p className="prose-emphasis">
+              <strong>Only lived faith becomes knowledge.</strong>
+            </p>
 
-        <p>
-          Experience is the path of faith. Faith is the fruit of experience. The circle closes —
-          but only for those who walk it.
-        </p>
+            <p>
+              Experience is the path of faith. Faith is the fruit of experience. The circle closes —
+              but only for those who walk it.
+            </p>
 
-        <hr className="prose-divider" />
-
-        <h2>The Logos</h2>
-
-        <p>
-          The Greek term <em>Logos</em> carried immense philosophical weight before Christianity
-          appropriated it. For John, the Logos was not merely spoken language but the divine
-          rationality that orders the cosmos — the principle of intelligibility itself. Everything
-          that exists participates in Logos; everything that can be understood does so through Logos.
-        </p>
-
-        <blockquote className="prose-quote">
-          <p>
-            "This Logos holds always, but humans always prove unable to understand it, both before
-            hearing it and when they have first heard it. For though all things come to be in
-            accordance with this Logos, humans are like the inexperienced."
-          </p>
-          <cite>— Heraclitus, Fragment B1</cite>
-        </blockquote>
-
-        <p>
-          Five centuries before John, Heraclitus spoke of a universal Logos governing all change
-          and opposition. Fire transforms to water transforms to earth — yet the <em>measure</em> (metron)
-          of transformation remains constant. The Logos is that constancy, that pattern, that
-          rationality underlying apparent chaos.
-        </p>
-
-        <p>
-          In our framework, τ₀ (tau-zero) represents the Logos computationally. It is the theoretical
-          source dimension from which the entire 16-dimensional semantic space unfolds. The 16D space
-          is a projection of τ₀ into manifestation. Higher τ values indicate surface meanings —
-          further from source. Lower τ values approach the archetypal, the universal, the Logos itself.
-          Dreams naturally operate at lower τ levels — closer to the source.
-        </p>
-
-        <p>
-          We do not claim to have captured Logos. Rather, we have constructed a mathematical space
-          in which the <em>direction toward Logos</em> can be meaningfully computed. The journey
-          matters more than the destination.
-        </p>
+          </div>
+        </details>
 
         <hr className="prose-divider" />
 
-        <h2>Research Direction</h2>
+        <details className="prose-spoiler">
+          <summary>The Logos</summary>
+          <div className="prose-spoiler__content">
 
-        <p>
-          This is not a claim to have discovered profound truth. It is a path — an attempt to build
-          tools that help consciousness perform its differentiation work more clearly.
-        </p>
+            <p>
+              The Greek term <em>Logos</em> carried immense philosophical weight before Christianity
+              appropriated it. For John, the Logos was not merely spoken language but the divine
+              rationality that orders the cosmos — the principle of intelligibility itself. Everything
+              that exists participates in Logos; everything that can be understood does so through Logos.
+            </p>
 
-        <p>What we are building:</p>
+            <blockquote className="prose-quote">
+              <p>
+                "This Logos holds always, but humans always prove unable to understand it, both before
+                hearing it and when they have first heard it. For though all things come to be in
+                accordance with this Logos, humans are like the inexperienced."
+              </p>
+              <cite>— Heraclitus, Fragment B1</cite>
+            </blockquote>
 
-        <ul className="prose-list">
-          <li>A semantic space where words have <em>positions</em>, not just associations</li>
-          <li>A physics of meaning where concepts have gravity, temperature, coherence</li>
-          <li>Navigation algorithms that move toward <em>good</em>, not just toward probable</li>
-          <li>Intent-driven collapse where verbs act as operators that focus exploration</li>
-        </ul>
+            <p>
+              Five centuries before John, Heraclitus spoke of a universal Logos governing all change
+              and opposition. Fire transforms to water transforms to earth — yet the <em>measure</em> (metron)
+              of transformation remains constant. The Logos is that constancy, that pattern, that
+              rationality underlying apparent chaos.
+            </p>
 
-        <p>
-          The question is not whether this is "true" in some absolute sense. The question is whether
-          these tools help us see more clearly, navigate more wisely, and understand more deeply.
-        </p>
+            <p>
+              In our framework, τ₀ (tau-zero) represents the Logos computationally. It is the theoretical
+              source dimension from which the semantic space unfolds. Higher τ values indicate surface meanings —
+              further from source. Lower τ values approach the archetypal, the universal, the Logos itself.
+              Dreams naturally operate at lower τ levels — closer to the source.
+            </p>
+
+            <p>
+              We do not claim to have captured Logos. Rather, we have constructed a mathematical space
+              in which the <em>direction toward Logos</em> can be meaningfully computed. The journey
+              matters more than the destination.
+            </p>
+
+          </div>
+        </details>
 
       </div>
     </section>

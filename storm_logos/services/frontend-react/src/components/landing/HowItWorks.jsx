@@ -93,26 +93,22 @@ export default function HowItWorks() {
         </table>
 
         <details className="prose-spoiler">
-          <summary>The Corpus: Sources and Selection</summary>
+          <summary>The Corpus: 16,500 Books</summary>
           <div className="prose-spoiler__content">
             <p>
-              Our semantic space is derived from 27 foundational texts comprising 85,157 semantic bonds:
-            </p>
-            <ul>
-              <li><strong>Psychology:</strong> Jung (5 works), Freud (6 works), Otto Rank</li>
-              <li><strong>Mythology:</strong> Homer, Ovid, Bulfinch, Frazer, Bible (KJV)</li>
-              <li><strong>Literature:</strong> Dostoevsky (4 novels)</li>
-            </ul>
-            <p>
-              These works form the foundation of Western psychological and mythological thought.
-              When your dream resonates with a passage from Jung or a scene from Homer, you're
-              touching universal human patterns — archetypes that have structured human experience
-              for millennia.
+              Our semantic space is derived from processing 16,500 books, extracting millions
+              of semantic bonds — adjective-noun pairs that reveal how language maps meaning.
             </p>
             <p>
-              The choice was not arbitrary. We selected texts that explicitly engage with dreams,
-              the unconscious, transformation, and meaning. The corpus is a map of the territory
-              your dreams inhabit.
+              This massive corpus spans fiction, non-fiction, philosophy, mythology, psychology,
+              and literature. The breadth ensures that Bond Space captures the full range of
+              human semantic expression, from the most concrete descriptions to the most
+              abstract concepts.
+            </p>
+            <p>
+              When your dream resonates with patterns in this space, you're touching universal
+              human experience — the accumulated semantic wisdom of thousands of authors
+              across centuries.
             </p>
           </div>
         </details>
