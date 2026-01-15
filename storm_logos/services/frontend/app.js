@@ -832,15 +832,20 @@ window.addEventListener('click', (e) => {
 
 function handleUrlParams() {
     const params = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
 
-    // Handle email verification
-    const verifyToken = params.get('verify');
+    // Handle email verification - supports both /auth/verify-email?token= and ?verify=
+    const verifyToken = params.get('token') && path.includes('verify-email')
+        ? params.get('token')
+        : params.get('verify');
     if (verifyToken) {
         handleEmailVerification(verifyToken);
     }
 
-    // Handle password reset
-    const resetToken = params.get('reset');
+    // Handle password reset - supports both /auth/reset-password?token= and ?reset=
+    const resetToken = params.get('token') && path.includes('reset-password')
+        ? params.get('token')
+        : params.get('reset');
     if (resetToken) {
         authModal.classList.add('hidden');
         showResetModal(resetToken);
