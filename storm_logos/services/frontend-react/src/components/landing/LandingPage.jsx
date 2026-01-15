@@ -9,8 +9,8 @@ import './landing.css'
 
 const SECTION_NAMES = [
   'Welcome',
-  'Theory',
   'Philosophy',
+  'Theory',
   'How It Works',
   'Get Started'
 ]
@@ -104,14 +104,14 @@ export default function LandingPage({ onEnterApp }) {
       </div>
 
       <div ref={el => sectionsRef.current[1] = el}>
-        <TheoryOverview
+        <OntologicalFoundation
           expandedCards={expandedCards}
           onToggle={toggleCard}
         />
       </div>
 
       <div ref={el => sectionsRef.current[2] = el}>
-        <OntologicalFoundation
+        <TheoryOverview
           expandedCards={expandedCards}
           onToggle={toggleCard}
         />
