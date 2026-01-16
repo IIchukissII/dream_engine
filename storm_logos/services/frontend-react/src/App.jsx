@@ -29,6 +29,8 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
+  const [verificationSuccess, setVerificationSuccess] = useState(false)
+  const [verificationError, setVerificationError] = useState(null)
 
   // Handler to exit landing page and enter the app
   function handleEnterApp() {
@@ -51,7 +53,13 @@ export default function App() {
 
   async function handleEmailVerification() {
     const params = new URLSearchParams(window.location.search)
-    const verifyToken = params.get('verify')
+    const path = window.location.pathname
+
+    // Handle email verification - supports both /auth/verify-email?token= and ?verify=
+    const verifyToken = params.get('token') && path.includes('verify-email')
+      ? params.get('token')
+      : params.get('verify')
+
     if (verifyToken) {
       try {
         await api.verifyEmail(verifyToken)
@@ -60,10 +68,14 @@ export default function App() {
           const updatedUser = await api.getCurrentUser()
           setUser(updatedUser)
         }
-        alert('Email verified successfully!')
-        window.history.replaceState({}, document.title, window.location.pathname)
+        // Clean up URL
+        window.history.replaceState({}, document.title, '/')
+        // Skip landing page and enter the app to show activation success
+        setShowLanding(false)
+        setVerificationSuccess(true)
       } catch (err) {
-        alert(`Verification failed: ${err.message}`)
+        setVerificationError(err.message)
+        window.history.replaceState({}, document.title, '/')
       }
     }
   }
@@ -264,6 +276,37 @@ export default function App() {
           onClose={() => setShowSettings(false)}
           onUserUpdate={handleUserUpdate}
         />
+      )}
+
+      {(verificationSuccess || verificationError) && (
+        <div className="modal" onClick={() => {
+          setVerificationSuccess(false)
+          setVerificationError(null)
+        }}>
+          <div className="modal-content verification-modal" onClick={e => e.stopPropagation()}>
+            {verificationSuccess ? (
+              <>
+                <div className="verification-icon success">&#10003;</div>
+                <h2>Email Verified!</h2>
+                <p>Your account has been successfully activated.</p>
+                <p>You now have full access to all features.</p>
+                <button onClick={() => setVerificationSuccess(false)}>
+                  Continue to App
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="verification-icon error">&#10007;</div>
+                <h2>Verification Failed</h2>
+                <p>{verificationError}</p>
+                <p>The link may have expired or already been used.</p>
+                <button onClick={() => setVerificationError(null)}>
+                  Close
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       <Header
