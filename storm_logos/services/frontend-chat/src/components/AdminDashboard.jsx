@@ -63,6 +63,14 @@ export default function AdminDashboard({ user }) {
           aVal = (a.username || '').toLowerCase()
           bVal = (b.username || '').toLowerCase()
           return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+        case 'email':
+          aVal = (a.email || '').toLowerCase()
+          bVal = (b.email || '').toLowerCase()
+          return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+        case 'verified':
+          aVal = a.email_verified ? 1 : 0
+          bVal = b.email_verified ? 1 : 0
+          return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
         case 'activity':
           aVal = a.total_activity || 0
           bVal = b.total_activity || 0
@@ -149,8 +157,12 @@ export default function AdminDashboard({ user }) {
               <th onClick={() => toggleSort('username')} className="sortable">
                 Username {sortBy === 'username' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>
-              <th>Email</th>
-              <th>Verified</th>
+              <th onClick={() => toggleSort('email')} className="sortable">
+                Email {sortBy === 'email' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
+              <th onClick={() => toggleSort('verified')} className="sortable">
+                Verified {sortBy === 'verified' && (sortOrder === 'asc' ? '↑' : '↓')}
+              </th>
               <th onClick={() => toggleSort('sessions')} className="sortable">
                 Sessions {sortBy === 'sessions' && (sortOrder === 'asc' ? '↑' : '↓')}
               </th>

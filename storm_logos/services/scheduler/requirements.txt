@@ -1,0 +1,8 @@
+# Prefect for workflow orchestration
+prefect>=3.0.0
+
+# Database
+neo4j>=5.0.0
+
+# For standalone email sending (not using shared email service)
+# Email is handled via stdlib smtplib

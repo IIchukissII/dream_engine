@@ -29,6 +29,8 @@ jobs:
             dockerfile: docker/Dockerfile.therapist
           - name: semantic
             dockerfile: docker/Dockerfile.semantic
+          - name: scheduler
+            dockerfile: docker/Dockerfile.scheduler
 
     steps:
       - name: Checkout repository
