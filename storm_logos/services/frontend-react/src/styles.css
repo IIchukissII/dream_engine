@@ -1764,6 +1764,10 @@ button.small {
 }
 
 /* Email Verification Modal */
+.modal:has(.verification-modal) {
+  z-index: 1100;
+}
+
 .verification-modal {
   text-align: center;
 }
