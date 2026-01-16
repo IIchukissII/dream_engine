@@ -1,9 +1,6 @@
-# Storm-Logos - Allow all search engines
+# Dream Engine Chat - Private application, no indexing
 User-agent: *
-Allow: /
+Disallow: /
 
-# Sitemap location (update domain when deployed)
-Sitemap: https://storm-logos.app/sitemap.xml
-
-# Crawl-delay suggestion (be nice to bots)
-Crawl-delay: 1
+# Main site sitemap
+Sitemap: https://dream-engine.space/sitemap.xml

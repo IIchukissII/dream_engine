@@ -1,10 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Chat app - no public pages to index. See https://dream-engine.space/sitemap.xml -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Landing Page - Main entry point with theory content -->
-  <url>
-    <loc>https://storm-logos.app/</loc>
-    <lastmod>2026-01-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
 </urlset>

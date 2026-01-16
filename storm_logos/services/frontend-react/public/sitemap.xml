@@ -2,9 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Landing Page - Main entry point with theory content -->
   <url>
-    <loc>https://storm-logos.app/</loc>
-    <lastmod>2026-01-15</lastmod>
+    <loc>https://dream-engine.space/</loc>
+    <lastmod>2026-01-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+  </url>
+  <!-- Terms of Service -->
+  <url>
+    <loc>https://dream-engine.space/terms</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <!-- Privacy Policy -->
+  <url>
+    <loc>https://dream-engine.space/privacy</loc>
+    <lastmod>2026-01-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
   </url>
 </urlset>
