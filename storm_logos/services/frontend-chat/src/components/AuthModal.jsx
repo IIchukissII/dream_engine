@@ -10,6 +10,7 @@ export default function AuthModal({ onLogin, onRegister, onSkip }) {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [resetToken, setResetToken] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
 
   // Check URL for reset token on mount
   useEffect(() => {
@@ -46,6 +47,10 @@ export default function AuthModal({ onLogin, onRegister, onSkip }) {
     } else if (mode === 'register') {
       if (!username || !email || !password) {
         setError('Please fill in all fields')
+        return
+      }
+      if (!agreedToTerms) {
+        setError('Please agree to the Terms of Service and Privacy Policy')
         return
       }
       try {
@@ -87,6 +92,7 @@ export default function AuthModal({ onLogin, onRegister, onSkip }) {
     setMode(newMode)
     setError('')
     setSuccess('')
+    setAgreedToTerms(false)
   }
 
   return (
@@ -164,6 +170,19 @@ export default function AuthModal({ onLogin, onRegister, onSkip }) {
 
           {mode === 'register' && (
             <>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={agreedToTerms}
+                  onChange={e => setAgreedToTerms(e.target.checked)}
+                />
+                <span>
+                  I agree to the{' '}
+                  <a href="https://dream-engine.space/terms" target="_blank" rel="noopener noreferrer">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="https://dream-engine.space/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</a>
+                </span>
+              </label>
               <div className="auth-buttons">
                 <button type="button" onClick={() => switchMode('login')}>Back to Login</button>
                 <button type="submit">Register</button>

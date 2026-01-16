@@ -2,14 +2,25 @@ import { useState, useEffect } from 'react'
 import * as api from './api'
 import { LandingPage } from './components/landing'
 import AuthModal from './components/AuthModal'
+import { TermsPage, PrivacyPage } from './components/LegalPages'
 
 const CHAT_URL = 'https://chat.dream-engine.space'
 
 export default function App() {
   const [showAuth, setShowAuth] = useState(false)
+  const [currentPage, setCurrentPage] = useState('landing')
 
   useEffect(() => {
-    api.trackPageView('landing')
+    // Simple routing based on pathname
+    const path = window.location.pathname
+    if (path === '/terms') {
+      setCurrentPage('terms')
+    } else if (path === '/privacy') {
+      setCurrentPage('privacy')
+    } else {
+      setCurrentPage('landing')
+      api.trackPageView('landing')
+    }
   }, [])
 
   // Redirect to chat app with token
@@ -46,6 +57,10 @@ export default function App() {
   function handleSkipAuth() {
     redirectToChat()
   }
+
+  // Render legal pages without landing UI
+  if (currentPage === 'terms') return <TermsPage />
+  if (currentPage === 'privacy') return <PrivacyPage />
 
   return (
     <>
