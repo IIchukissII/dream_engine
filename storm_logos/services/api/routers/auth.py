@@ -18,8 +18,8 @@ from ...email import get_email_service
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Base URL for email links
-BASE_URL = os.getenv('BASE_URL', 'https://dream-engine.space')
+# Base URL for email links (chat subdomain handles auth flows)
+BASE_URL = os.getenv('BASE_URL', 'https://chat.dream-engine.space')
 
 
 def _user_to_response(user) -> UserResponse:
