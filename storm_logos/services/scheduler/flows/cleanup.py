@@ -4,7 +4,6 @@ import logging
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-from prefect import flow, task
 from neo4j import GraphDatabase
 import smtplib
 from email.mime.text import MIMEText
@@ -24,61 +23,62 @@ def get_neo4j_driver():
     return GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
 
-@task(name="find_accounts_needing_warning", retries=2, retry_delay_seconds=30)
 def find_accounts_needing_warning() -> List[Dict[str, Any]]:
     """Find unverified accounts older than threshold that haven't been warned."""
     driver = get_neo4j_driver()
     threshold = datetime.utcnow() - timedelta(days=DAYS_BEFORE_WARNING)
 
-    with driver.session() as session:
-        result = session.run("""
-            MATCH (u:User)
-            WHERE u.email_verified = false
-              AND u.created_at < $threshold
-              AND u.deletion_warning_sent_at IS NULL
-              AND u.email IS NOT NULL
-            RETURN u.user_id AS user_id,
-                   u.username AS username,
-                   u.email AS email,
-                   u.created_at AS created_at
-        """, threshold=threshold.isoformat())
+    try:
+        with driver.session() as session:
+            result = session.run("""
+                MATCH (u:User)
+                WHERE u.email_verified = false
+                  AND u.created_at < $threshold
+                  AND u.deletion_warning_sent_at IS NULL
+                  AND u.email IS NOT NULL
+                RETURN u.user_id AS user_id,
+                       u.username AS username,
+                       u.email AS email,
+                       u.created_at AS created_at
+            """, threshold=threshold.isoformat())
 
-        users = [dict(record) for record in result]
+            users = [dict(record) for record in result]
+    finally:
+        driver.close()
 
-    driver.close()
     logger.info(f"Found {len(users)} accounts needing warning")
     return users
 
 
-@task(name="find_accounts_to_delete", retries=2, retry_delay_seconds=30)
 def find_accounts_to_delete() -> List[Dict[str, Any]]:
     """Find accounts warned more than threshold hours ago that are still unverified."""
     driver = get_neo4j_driver()
     threshold = datetime.utcnow() - timedelta(hours=HOURS_AFTER_WARNING)
 
-    with driver.session() as session:
-        result = session.run("""
-            MATCH (u:User)
-            WHERE u.email_verified = false
-              AND u.deletion_warning_sent_at IS NOT NULL
-              AND u.deletion_warning_sent_at < $threshold
-            RETURN u.user_id AS user_id,
-                   u.username AS username,
-                   u.email AS email
-        """, threshold=threshold.isoformat())
+    try:
+        with driver.session() as session:
+            result = session.run("""
+                MATCH (u:User)
+                WHERE u.email_verified = false
+                  AND u.deletion_warning_sent_at IS NOT NULL
+                  AND u.deletion_warning_sent_at < $threshold
+                RETURN u.user_id AS user_id,
+                       u.username AS username,
+                       u.email AS email
+            """, threshold=threshold.isoformat())
 
-        users = [dict(record) for record in result]
+            users = [dict(record) for record in result]
+    finally:
+        driver.close()
 
-    driver.close()
     logger.info(f"Found {len(users)} accounts to delete")
     return users
 
 
-@task(name="send_warning_email", retries=3, retry_delay_seconds=60)
 def send_warning_email(user: Dict[str, Any]) -> bool:
     """Send account deletion warning email."""
     if not SMTP_USER or not SMTP_PASSWORD:
-        logger.warning("SMTP not configured, skipping email")
+        logger.warning("SMTP credentials not configured, skipping email")
         return False
 
     username = user['username']
@@ -154,52 +154,53 @@ If you no longer wish to use Dream Engine, no action is needed.
         return True
     except Exception as e:
         logger.error(f"Failed to send warning email to {email}: {e}")
-        raise
+        return False
 
 
-@task(name="mark_warning_sent", retries=2, retry_delay_seconds=30)
 def mark_warning_sent(user_id: str) -> bool:
     """Mark that warning email was sent to user."""
     driver = get_neo4j_driver()
     now = datetime.utcnow().isoformat()
 
-    with driver.session() as session:
-        session.run("""
-            MATCH (u:User {user_id: $user_id})
-            SET u.deletion_warning_sent_at = $now
-        """, user_id=user_id, now=now)
+    try:
+        with driver.session() as session:
+            session.run("""
+                MATCH (u:User {user_id: $user_id})
+                SET u.deletion_warning_sent_at = $now
+            """, user_id=user_id, now=now)
+    finally:
+        driver.close()
 
-    driver.close()
     logger.info(f"Marked warning sent for user {user_id}")
     return True
 
 
-@task(name="delete_user_account", retries=2, retry_delay_seconds=30)
 def delete_user_account(user: Dict[str, Any]) -> bool:
     """Delete user account and all associated data."""
     driver = get_neo4j_driver()
     user_id = user['user_id']
     username = user['username']
 
-    with driver.session() as session:
-        # Delete all user's data (sessions, dreams, symbols, etc.)
-        session.run("""
-            MATCH (u:User {user_id: $user_id})
-            OPTIONAL MATCH (u)-[:HAS_SESSION]->(s:Session)
-            OPTIONAL MATCH (s)-[:HAS_TURN]->(t:Turn)
-            OPTIONAL MATCH (s)-[:HAS_SYMBOL]->(sym:SessionSymbol)
-            OPTIONAL MATCH (u)-[:HAS_DREAM]->(d:Dream)
-            OPTIONAL MATCH (d)-[:HAS_SYMBOL]->(dsym:DreamSymbol)
-            DETACH DELETE u, s, t, sym, d, dsym
-        """, user_id=user_id)
+    try:
+        with driver.session() as session:
+            # Delete all user's data (sessions, dreams, symbols, etc.)
+            session.run("""
+                MATCH (u:User {user_id: $user_id})
+                OPTIONAL MATCH (u)-[:HAS_SESSION]->(s:Session)
+                OPTIONAL MATCH (s)-[:HAS_TURN]->(t:Turn)
+                OPTIONAL MATCH (s)-[:HAS_SYMBOL]->(sym:SessionSymbol)
+                OPTIONAL MATCH (u)-[:HAS_DREAM]->(d:Dream)
+                OPTIONAL MATCH (d)-[:HAS_SYMBOL]->(dsym:DreamSymbol)
+                DETACH DELETE u, s, t, sym, d, dsym
+            """, user_id=user_id)
+    finally:
+        driver.close()
 
-    driver.close()
     logger.info(f"Deleted account for user {username} ({user_id})")
     return True
 
 
-@flow(name="account_cleanup", log_prints=True)
-def account_cleanup_flow():
+def account_cleanup_flow() -> Dict[str, int]:
     """Main cleanup flow - warns and deletes unverified accounts."""
     logger.info("Starting account cleanup flow")
 
@@ -212,6 +213,9 @@ def account_cleanup_flow():
             if send_warning_email(user):
                 mark_warning_sent(user['user_id'])
                 warned_count += 1
+            else:
+                # Mark as warned even if email failed (to avoid retrying forever)
+                mark_warning_sent(user['user_id'])
         except Exception as e:
             logger.error(f"Failed to process warning for {user['username']}: {e}")
 
@@ -227,7 +231,6 @@ def account_cleanup_flow():
             logger.error(f"Failed to delete account {user['username']}: {e}")
 
     logger.info(f"Cleanup complete: {warned_count} warned, {deleted_count} deleted")
-    print(f"Cleanup complete: {warned_count} warned, {deleted_count} deleted")
 
     return {
         "warned": warned_count,
