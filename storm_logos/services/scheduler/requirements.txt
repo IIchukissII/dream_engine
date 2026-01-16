@@ -1,8 +1,8 @@
-# APScheduler for lightweight scheduling
-apscheduler>=3.10.0
+# Prefect for workflow orchestration
+prefect>=3.0.0
 
 # Database
 neo4j>=5.0.0
 
-# HTTP server for health checks
-flask>=3.0.0
+# For standalone email sending (not using shared email service)
+# Email is handled via stdlib smtplib

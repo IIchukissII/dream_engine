@@ -1,4 +1,4 @@
-"""Scheduled task flows."""
+"""Prefect flows for scheduled tasks."""
 
 from .cleanup import account_cleanup_flow
 
