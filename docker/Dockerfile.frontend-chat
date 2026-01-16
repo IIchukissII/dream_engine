@@ -9,6 +9,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Cache bust: 2026-01-16-v2
+ARG CACHEBUST=1
+
 # Copy package files
 COPY storm_logos/services/frontend-chat/package*.json ./
 
