@@ -25,6 +25,25 @@
   scroll-behavior: smooth;
   background: var(--bg-gradient);
   background-attachment: fixed;
+  position: relative;
+}
+
+/* Background pattern using actual logo geometry */
+.landing-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='512' height='512' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cg transform='translate(256, 256)'%3E%3Ccircle cx='0' cy='0' r='200' fill='none' stroke='%23d4c4a8' stroke-width='1' opacity='0.12'/%3E%3Ccircle cx='0' cy='0' r='180' fill='none' stroke='%23d4c4a8' stroke-width='1.5' opacity='0.18'/%3E%3Cpath d='M0 -140 L122 88 L-122 88 Z' fill='none' stroke='%23d4c4a8' stroke-width='2' opacity='0.15'/%3E%3Cline x1='-78' y1='25' x2='78' y2='25' stroke='%23d4c4a8' stroke-width='1.5' opacity='0.12'/%3E%3Cg stroke='%23d4c4a8' stroke-width='1' opacity='0.1'%3E%3Cline x1='0' y1='-95' x2='0' y2='-165'/%3E%3Cline x1='0' y1='100' x2='0' y2='165'/%3E%3Cline x1='-95' y1='0' x2='-165' y2='0'/%3E%3Cline x1='95' y1='0' x2='165' y2='0'/%3E%3Cline x1='-66' y1='-66' x2='-120' y2='-120'/%3E%3Cline x1='66' y1='-66' x2='120' y2='-120'/%3E%3Cline x1='-66' y1='66' x2='-120' y2='120'/%3E%3Cline x1='66' y1='66' x2='120' y2='120'/%3E%3C/g%3E%3Cg fill='%23d4c4a8' font-family='serif' text-anchor='middle'%3E%3Ctext x='0' y='-180' font-size='24' opacity='0.15'%3E☿%3C/text%3E%3Ctext x='188' y='8' font-size='24' opacity='0.15'%3E☽%3C/text%3E%3Ctext x='-188' y='8' font-size='24' opacity='0.15'%3E☉%3C/text%3E%3Ccircle cx='0' cy='180' r='10' fill='none' stroke='%23d4c4a8' stroke-width='1.5' opacity='0.12'/%3E%3Cline x1='-14' y1='180' x2='14' y2='180' stroke='%23d4c4a8' stroke-width='1.5' opacity='0.12'/%3E%3C/g%3E%3Cg fill='%23d4c4a8' opacity='0.15'%3E%3Ccircle cx='-122' cy='88' r='3.5'/%3E%3Ccircle cx='122' cy='88' r='3.5'/%3E%3Ccircle cx='0' cy='-140' r='3.5'/%3E%3Ccircle cx='-78' cy='25' r='2.5'/%3E%3Ccircle cx='78' cy='25' r='2.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-size: 100vmin;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+}
+
+.landing-page > * {
+  position: relative;
+  z-index: 1;
 }
 
 .landing-section {
