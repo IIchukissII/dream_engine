@@ -1,0 +1,131 @@
+const API_BASE = import.meta.env.DEV ? 'http://localhost:8000' : '/api';
+
+let token = localStorage.getItem('token');
+
+export function getToken() {
+  return token;
+}
+
+export function setToken(t) {
+  token = t;
+  if (t) {
+    localStorage.setItem('token', t);
+  } else {
+    localStorage.removeItem('token');
+  }
+}
+
+export function getUser() {
+  const u = localStorage.getItem('user');
+  return u ? JSON.parse(u) : null;
+}
+
+export function setUser(u) {
+  if (u) {
+    localStorage.setItem('user', JSON.stringify(u));
+  } else {
+    localStorage.removeItem('user');
+  }
+}
+
+export async function api(endpoint, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const options = { method, headers };
+  if (body) {
+    options.body = JSON.stringify(body);
+  }
+
+  const response = await fetch(`${API_BASE}${endpoint}`, options);
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.detail || 'API Error');
+  }
+
+  return data;
+}
+
+// Auth
+export async function login(username, password) {
+  const data = await api('/auth/login', 'POST', { username, password });
+  setToken(data.access_token);
+  setUser(data.user);
+  return data;
+}
+
+export async function register(username, email, password) {
+  const data = await api('/auth/register', 'POST', { username, email, password });
+  setToken(data.access_token);
+  setUser(data.user);
+  return data;
+}
+
+export function logout() {
+  setToken(null);
+  setUser(null);
+}
+
+// Password management
+export const forgotPassword = (email) => api('/auth/password/forgot', 'POST', { email });
+export const resetPassword = (resetToken, newPassword) => api('/auth/password/reset', 'POST', { token: resetToken, new_password: newPassword });
+export const changePassword = (currentPassword, newPassword) => api('/auth/password/change', 'POST', { current_password: currentPassword, new_password: newPassword });
+
+// Email verification
+export const verifyEmail = (verifyToken) => api('/auth/email/verify', 'POST', { token: verifyToken });
+export const resendVerification = () => api('/auth/email/resend', 'POST');
+
+// Profile
+export async function updateProfile(displayName, avatarUrl) {
+  const data = await api('/auth/profile', 'PUT', { display_name: displayName, avatar_url: avatarUrl });
+  const user = getUser();
+  setUser({ ...user, display_name: displayName, avatar_url: avatarUrl });
+  return data;
+}
+
+export async function getCurrentUser() {
+  const data = await api('/auth/me', 'GET');
+  setUser(data);
+  return data;
+}
+
+// Sessions
+export const startSession = (mode) => api('/sessions/start', 'POST', { mode });
+export const sendMessage = (sessionId, message, mode = null) => api(`/sessions/${sessionId}/message`, 'POST', { message, mode });
+export const endSession = (sessionId) => api(`/sessions/${sessionId}/end`, 'POST');
+export const pauseSession = (sessionId) => api(`/sessions/${sessionId}/pause`, 'POST');
+export const resumeSession = (sessionId) => api(`/sessions/${sessionId}/resume`, 'POST');
+export const deleteSession = (sessionId) => api(`/sessions/${sessionId}`, 'DELETE');
+export const getHistory = () => api('/sessions/history');
+
+// Profile (Archetype)
+export const getProfile = () => api('/evolution/profile');
+export const getEvolution = (archetype) => api(`/evolution/archetype/${archetype}`);
+
+// Info
+export const getInfo = () => api('/info');
+
+// Corpus/Books
+export const getCorpusBooks = () => api('/corpus/books');
+export const processBook = (text, title, author) => api('/corpus/process', 'POST', { text, title, author });
+
+// Dreams
+export const analyzeDream = (dream) => api('/dreams/analyze', 'POST', { dream });
+export const saveDream = (data) => api('/dreams/save', 'POST', data);
+export const listDreams = () => api('/dreams/list');
+export const deleteDream = (dreamId) => api(`/dreams/${dreamId}`, 'DELETE');
+
+// Admin
+export const getAdminUsers = () => api('/admin/users');
+
+// Analytics - track page views (fire and forget)
+export function trackPageView(page) {
+  fetch(`${API_BASE}/track`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page }),
+  }).catch(() => {}); // Silent fail
+}

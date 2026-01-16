@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import * as api from '../api'
 
-export default function AuthModal({ onLogin, onRegister, onSkip, onClose }) {
+export default function AuthModal({ onLogin, onRegister, onSkip }) {
   const [mode, setMode] = useState('login') // 'login', 'register', 'forgot', 'reset'
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -90,11 +90,8 @@ export default function AuthModal({ onLogin, onRegister, onSkip, onClose }) {
   }
 
   return (
-    <div className="modal" onClick={onClose}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        {onClose && (
-          <button className="modal-close" onClick={onClose} type="button">&times;</button>
-        )}
+    <div className="modal">
+      <div className="modal-content">
         <h2>
           {mode === 'login' && 'Welcome'}
           {mode === 'register' && 'Create Account'}

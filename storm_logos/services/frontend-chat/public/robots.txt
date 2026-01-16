@@ -1,0 +1,9 @@
+# Storm-Logos - Allow all search engines
+User-agent: *
+Allow: /
+
+# Sitemap location (update domain when deployed)
+Sitemap: https://storm-logos.app/sitemap.xml
+
+# Crawl-delay suggestion (be nice to bots)
+Crawl-delay: 1

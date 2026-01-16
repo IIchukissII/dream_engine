@@ -21,6 +21,8 @@ jobs:
         include:
           - name: frontend
             dockerfile: docker/Dockerfile.frontend
+          - name: frontend-chat
+            dockerfile: docker/Dockerfile.frontend-chat
           - name: api
             dockerfile: docker/Dockerfile.api
           - name: therapist
