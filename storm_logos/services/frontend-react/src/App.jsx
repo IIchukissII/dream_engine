@@ -61,6 +61,9 @@ export default function App() {
       : params.get('verify')
 
     if (verifyToken) {
+      // Always exit landing page when processing verification
+      setShowLanding(false)
+
       try {
         await api.verifyEmail(verifyToken)
         // Refresh user data to get updated email_verified status
@@ -68,15 +71,12 @@ export default function App() {
           const updatedUser = await api.getCurrentUser()
           setUser(updatedUser)
         }
-        // Clean up URL
-        window.history.replaceState({}, document.title, '/')
-        // Skip landing page and enter the app to show activation success
-        setShowLanding(false)
         setVerificationSuccess(true)
       } catch (err) {
         setVerificationError(err.message)
-        window.history.replaceState({}, document.title, '/')
       }
+      // Clean up URL after processing
+      window.history.replaceState({}, document.title, '/')
     }
   }
 
