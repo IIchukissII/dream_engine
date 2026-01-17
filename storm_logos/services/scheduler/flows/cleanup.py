@@ -10,7 +10,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from ..config import (
+from scheduler.config import (
     NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD,
     SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EMAIL_FROM,
     BASE_URL, DAYS_BEFORE_WARNING, HOURS_AFTER_WARNING

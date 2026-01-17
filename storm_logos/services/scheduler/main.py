@@ -5,8 +5,8 @@ import sys
 from prefect import serve
 from prefect.client.schemas.schedules import CronSchedule
 
-from .config import LOG_LEVEL
-from .flows import account_cleanup_flow
+from scheduler.config import LOG_LEVEL
+from scheduler.flows import account_cleanup_flow
 
 # Configure logging
 logging.basicConfig(
