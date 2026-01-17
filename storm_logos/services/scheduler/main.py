@@ -2,10 +2,8 @@
 
 import logging
 import sys
-from datetime import timedelta
-
 from prefect import serve
-from prefect.client.schemas.schedules import IntervalSchedule
+from prefect.client.schemas.schedules import CronSchedule
 
 from .config import LOG_LEVEL
 from .flows import account_cleanup_flow
@@ -28,7 +26,7 @@ def main():
     cleanup_deployment = account_cleanup_flow.to_deployment(
         name="account-cleanup-daily",
         description="Daily cleanup of unverified accounts",
-        schedule=IntervalSchedule(interval=timedelta(days=1)),
+        schedule=CronSchedule(cron="0 3 * * *", timezone="UTC"),
         tags=["cleanup", "maintenance"]
     )
 
